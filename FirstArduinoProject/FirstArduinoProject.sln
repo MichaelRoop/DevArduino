@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FirstArduinoProject", "Firs
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBluetoothCmdTests", "..\ArduinoBluetoothCmdTests\ArduinoBluetoothCmdTests.vcxproj", "{372A959C-0EFE-43D0-8E80-D07B36D76AF6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBluetoothDataTests", "..\ArduinoBluetoothDataTests\ArduinoBluetoothDataTests.vcxproj", "{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -21,6 +23,10 @@ Global
 		{372A959C-0EFE-43D0-8E80-D07B36D76AF6}.Debug|x86.Build.0 = Debug|Win32
 		{372A959C-0EFE-43D0-8E80-D07B36D76AF6}.Release|x86.ActiveCfg = Release|Win32
 		{372A959C-0EFE-43D0-8E80-D07B36D76AF6}.Release|x86.Build.0 = Release|Win32
+		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Debug|x86.ActiveCfg = Debug|Win32
+		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Debug|x86.Build.0 = Debug|Win32
+		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Release|x86.ActiveCfg = Release|Win32
+		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
