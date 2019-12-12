@@ -9,6 +9,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBluetoothCmdTests", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBluetoothDataTests", "..\ArduinoBluetoothDataTests\ArduinoBluetoothDataTests.vcxproj", "{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoTestCTCModeTimerBlink", "..\ArduinoTestCTCModeTimerBlink\ArduinoTestCTCModeTimerBlink.vcxproj", "{4C7584AD-8D92-4C94-9C29-A324597A912C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoTestTimerOverflowInterupt", "..\ArduinoTestTimerOverflowInterupt\ArduinoTestTimerOverflowInterupt.vcxproj", "{6AE5BA43-8FBE-4E0A-AB40-60C405E391AB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoTestEncodeExample", "..\ArduinoTestEncodeExample\ArduinoTestEncodeExample.vcxproj", "{1594098B-1C1F-444B-A370-64AF7F2C0CA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -27,6 +33,18 @@ Global
 		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Debug|x86.Build.0 = Debug|Win32
 		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Release|x86.ActiveCfg = Release|Win32
 		{29A56A4B-51C9-49DE-8D95-B4B9E8544ADB}.Release|x86.Build.0 = Release|Win32
+		{4C7584AD-8D92-4C94-9C29-A324597A912C}.Debug|x86.ActiveCfg = Debug|Win32
+		{4C7584AD-8D92-4C94-9C29-A324597A912C}.Debug|x86.Build.0 = Debug|Win32
+		{4C7584AD-8D92-4C94-9C29-A324597A912C}.Release|x86.ActiveCfg = Release|Win32
+		{4C7584AD-8D92-4C94-9C29-A324597A912C}.Release|x86.Build.0 = Release|Win32
+		{6AE5BA43-8FBE-4E0A-AB40-60C405E391AB}.Debug|x86.ActiveCfg = Debug|Win32
+		{6AE5BA43-8FBE-4E0A-AB40-60C405E391AB}.Debug|x86.Build.0 = Debug|Win32
+		{6AE5BA43-8FBE-4E0A-AB40-60C405E391AB}.Release|x86.ActiveCfg = Release|Win32
+		{6AE5BA43-8FBE-4E0A-AB40-60C405E391AB}.Release|x86.Build.0 = Release|Win32
+		{1594098B-1C1F-444B-A370-64AF7F2C0CA2}.Debug|x86.ActiveCfg = Debug|Win32
+		{1594098B-1C1F-444B-A370-64AF7F2C0CA2}.Debug|x86.Build.0 = Debug|Win32
+		{1594098B-1C1F-444B-A370-64AF7F2C0CA2}.Release|x86.ActiveCfg = Release|Win32
+		{1594098B-1C1F-444B-A370-64AF7F2C0CA2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
