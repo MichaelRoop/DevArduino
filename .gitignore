@@ -6,3 +6,5 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/TestStore/0/*.*
 FirstArduinoProject/.vs/FirstArduinoProject/v16/ipch/AutoPCH/1293329486f58c3b/.FIRSTARDUINOPROJECT.VSARDUINO.ipch
 FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 **/AutoPCH/
+**/AutoPCH/**
+**/AutoPCH/*/*.*
