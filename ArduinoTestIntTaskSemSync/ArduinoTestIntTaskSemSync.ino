@@ -12,15 +12,18 @@
 */
 
 
-int incr = 0;
-int index = 0;
+//int incr = 0;
+//int index = 0;
 typedef int (*testFunc)();
 
-volatile int vIncr = 0;
-volatile int vIndex = 0;
+int Func1();
 
-unsigned char cIndex = 0;
-unsigned char cIncr = 0;
+//
+//volatile int vIncr = 0;
+//volatile int vIndex = 0;
+//
+//unsigned char cIndex = 0;
+//unsigned char cIncr = 0;
 
 void TimeFunction(testFunc fn, int iterations);
 
@@ -31,10 +34,6 @@ void setup() {
     while (!Serial) { ; }
     Serial.println("Serial port started");
 
-    int iterations = 1000;
-
-    // Timing function pointer calls (1,180 us)
-    TimeFunction(Func1, iterations);
 
 
     // The timings in the notes were based on an 8 bit Arduino Uno board (Atmel).
@@ -50,143 +49,39 @@ void setup() {
     //    https://store.arduino.cc/usa/arduino-zero
     //    Uno footprint
     //    Digi IO 20 Analog In 6 (12bit ADC) Analog out 1(10bit DAC) Flash 256KB SRAM 32KB Clock 48MHz
+    
+    TimeFunction(Func1, 250);           // 300us avg(1.20)
+    Iterate8BitSimpleIncrement(250);    // 88us avg(0.35) 
+    Iterate16BitSimpleIncrement(250);   // 120us avg(0.48)
+    Iterate8Bit5Increments(250);        // 88us avg(0.35) 
+    Iterate16Bit5Increments(250);       // 120us avg(0.48)
+    Iterate16bitMoreOperations(250);    // 120us avg(0.48)
+    WhileLoop8bitLocalVar(250);         // 96us avg(0.38) 
+    WhileLoop16bitLocalVar(250);        // 128us avg(0.51)
 
+    // 120us avg(0.48) 250 iterations - for loop local var 16 bit
+    // 124us avg(0.50) 250 iterations - while loop local var 16 bit
+    CompareLocalWhileAndFor16bit(250);
 
-    //---------------------------------------
-    // Direct processing 
-    //---------------------------------------
+    // 432us avg(1.73) 250 iterations - for loop global var 16 bit
+    // 436us avg(1.74) 250 iterations - while loop global var 16 bit
+    CompareGlobalWhileAndFor16bit(250);
 
-    // operations on 8 bit local variables (88us)
-    // By limiting to 8 bit variables we get 88us. Done 4 times would give 352us for 1000 rather than 556us with int
-    unsigned long start = micros();
-    unsigned char cInc1 = 0;
-    for (unsigned char cI = 0; cI < 250; cI++) { 
-        cInc1++; 
-    }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        250 * 4, "iterations of 8 bit direct for loop");
+    VolatileLoop8Bit(250);          // 276us avg(1.10)
+    VolatileLoop16Bit(250);         // 300us avg(1.20)
 
+    // 88us avg(0.35) 250 iterations - for loop local var 8 bit
+    // 284us avg(1.14) 250 iterations - for loop volatile 8 bit global var
+    // 440us avg(1.76) 250 iterations - for loop global var 8 bit
+    LocalGlobalVolatileCompare8Bit(250);
 
-
-    // single operation (556us)
-    start = micros();
-    int inc = 0;
-    for (int i = 0; i < iterations; i++) { inc++; }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations of direct for loop");
-
-    // Second for loop with more operations (4,828us)
-    int inc2 = 0;
-    int inc3 = 0;
-    int inc4 = 0;
-    int inc5 = 0;
-    for (int i = 0; i < iterations; i++) {
-        inc++;
-        inc2++;
-        inc3++;
-        inc4++;
-        inc5++;
-    }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations of (2) direct for loop");
-
-    // Second for loop with more operations (10,360us)
-    inc2 = 0;
-    inc3 = 0;
-    inc4 = 0;
-    inc5 = 0;
-    for (int i = 0; i < iterations; i++) {
-        inc = inc + i;
-        inc2 = inc2 + i;
-        inc3 = inc3 + i;
-        inc4 = inc4 + i;
-        inc5 = inc5 + i;
-    }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations of (3) direct for loop");
-
-
-    // while loop local (552us)
-    start = micros();
-    int ii = 0;
-    while (ii < iterations) {
-        inc++;
-        ii++;
-    }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations - while loop local var");
-
-    //---------------------------------------
-    // Global variables
-    //---------------------------------------
-
-    // for loop (1,804us) - same as first local for loop but with global variable
-    // takes 1,805us rather than 556us.
-    start = micros();
-    index = 0;
-    for (; index < iterations; index++) { incr++; }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations - for loop global var");
-
-    // while loop (1,804us)
-    start = micros();
-    incr = 0;
-    index = 0;
-    while (index < iterations) {
-        incr++;
-        index++;
-    }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations - while loop global var");
-
-    //---------------------------------------
-    // Global volatile variables
-    //---------------------------------------
-    // for loop (2,808us) - same as first local for loop but with global variable
-    // takes 2,808us rather than 556us for local and 1,804 for regular global.
-    start = micros();
-    index = 0;
-    for (/*vIndex = 0*/; vIndex < iterations; vIndex++) { vIncr++; }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        iterations, "iterations - for loop volatile global var");
-
-    // Test with variables limited to 8 bit so as not to have more than one
-    // operation to read and change variables
-    // Result is 248us of 254 iterations
-    // Multiplied by 4 is 992us for 1,000 iterations - with 32 bit variables it is 1,804. So, half the processing time
-    start = micros();
-    for (cIndex = 0; cIndex < 255; cIndex++) { cIncr++; }
-    PrintLoopResults(
-        GetMicroSecondInteral(start, micros()),
-        255, "iterations - for loop (8bit) volatile global var");
-
+    // 128us avg(0.51) 250 iterations - for loop local var 16 bit
+    // 292us avg(1.17) 250 iterations - for loop volatile 16 bit global var
+    // 436us avg(1.74) 250 iterations - for loop global var 16 bit
+    LocalGlobalVolatileCompare16Bit(250);
 
     Serial.println("Done...");
-
-
-    //    //// In case the time has exceeded the 1ms
-    //    //if (interval >= 1000) {
-    //    //    // No wait
-    //    //    Serial.print("microseconds used in 1ms loop ");
-    //    //    Serial.print(interval);
-    //    //    Serial.println(" NO WAIT REQUIRED");
-    //    //}
-    //    //else {
-    //    //    delayMicroseconds((1000 - interval));
-    //    //    Serial.print("microseconds used in 1ms loop ");
-    //    //    Serial.print(interval);
-    //    //    Serial.println("");
-    //    //}
-
-}
+ }
 
 
 void loop() {
@@ -250,6 +145,291 @@ void loop() {
 //
 //
 
+void Iterate8BitSimpleIncrement(byte iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    byte inc = 0;
+    start = micros();
+    for (byte i = 0; i < iterations; i++) {
+        inc++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations of 8 bit direct for loop (in func)");
+}
+
+void Iterate16BitSimpleIncrement(int iterations) {
+    // single operation (120us)
+    unsigned long start = 0;
+    unsigned long stop;
+    int inc = 0;
+    start = micros();
+    for (int i = 0; i < iterations; i++) { inc++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations of 16 bit direct for loop");
+}
+
+void Iterate8Bit5Increments(byte iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    // Second 8 bit for loop with more operations (us)
+    byte b1 = 0;
+    byte b2 = 0;
+    byte b3 = 0;
+    byte b4 = 0;
+    byte b5 = 0;
+    start = micros();
+    for (byte i = 0; i < iterations; i++) {
+        b1++;
+        b2++;
+        b3++;
+        b4++;
+        b5++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations 8 bit of 5 increments");
+}
+
+void Iterate16Bit5Increments(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    // Second for loop with more operations (4,828us)
+    int inc = 0;
+    int inc2 = 0;
+    int inc3 = 0;
+    int inc4 = 0;
+    int inc5 = 0;
+    start = micros();
+    for (int i = 0; i < iterations; i++) {
+        inc++;
+        inc2++;
+        inc3++;
+        inc4++;
+        inc5++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations 16 bit of 5 increments");
+}
+
+void Iterate16bitMoreOperations(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    // Second for loop with more operations (10,360us)
+    int inc = 0;
+    int inc2 = 0;
+    int inc3 = 0;
+    int inc4 = 0;
+    int inc5 = 0;
+    start = micros();
+    for (int i = 0; i < iterations; i++) {
+        inc = inc + i;
+        inc2 = inc2 + i;
+        inc3 = inc3 + i;
+        inc4 = inc4 + i;
+        inc5 = inc5 + i;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - more operations");
+}
+
+void WhileLoop8bitLocalVar(byte iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    byte inc = 0;
+    // while loop local (552us)
+    start = micros();
+    byte i = 0;
+    while (i < iterations) {
+        inc++;
+        i++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - while loop local var 8 bit");
+}
+
+void WhileLoop16bitLocalVar(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    int inc = 0;
+    // while loop local (552us)
+    start = micros();
+    int i = 0;
+    while (i < iterations) {
+        inc++;
+        i++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - while loop local var 16 bit");
+}
+
+void CompareLocalWhileAndFor16bit(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    int i = 0;
+    int incr = 0;
+    start = micros();
+    for (; i < iterations; i++) { incr++; }
+    stop = micros();
+    Serial.println("---------------------------------------------------");
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop local var 16 bit");
+
+    // while loop (1,804us)
+    start = micros();
+    incr = 0;
+    i = 0;
+    while (i < iterations) {
+        incr++;
+        i++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, micros()),
+        iterations, "iterations - while loop local var 16 bit");
+    Serial.println("---------------------------------------------------");
+}
+
+
+int gbli = 0;
+int gblincr = 0;
+void CompareGlobalWhileAndFor16bit(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    gbli = 0;
+    gblincr = 0;
+    start = micros();
+    for (; gbli < iterations; gbli++) { gblincr++; }
+    stop = micros();
+    Serial.println("---------------------------------------------------");
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop global var 16 bit");
+
+    // while loop (1,804us)
+    start = micros();
+    gblincr = 0;
+    gbli = 0;
+    while (gbli < iterations) {
+        gblincr++;
+        gbli++;
+    }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, micros()),
+        iterations, "iterations - while loop global var 16 bit");
+    Serial.println("---------------------------------------------------");
+}
+
+
+volatile byte vbI = 0;
+volatile byte vbIncr = 0;
+void VolatileLoop8Bit(byte iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    
+    start = micros();
+    for (vbI = 0; vbI < iterations; vbI++) { vbIncr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop volatile 8 bit global var");
+}
+
+volatile byte viI = 0;
+volatile byte viIncr = 0;
+void VolatileLoop16Bit(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+
+    start = micros();
+    for (viI = 0; viI < iterations; viI++) { viIncr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop volatile 16 bit global var");
+}
+
+
+int gblbi = 0;
+int gblbincr = 0;
+void LocalGlobalVolatileCompare8Bit(byte iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    byte incr = 0;
+    start = micros();
+    for (byte i = 0; i < iterations; i++) { incr++; }
+    stop = micros();
+    Serial.println("---------------------------------------------------");
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop local var 8 bit");
+
+    vbIncr = 0;
+    start = micros();
+    for (vbI = 0; vbI < iterations; vbI++) { vbIncr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop volatile 8 bit global var");
+
+    gblbincr = 0;
+    start = micros();
+    for (gblbi = 0; gblbi < iterations; gblbi++) { gblbincr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop global var 8 bit");
+
+    Serial.println("---------------------------------------------------");
+}
+
+
+void LocalGlobalVolatileCompare16Bit(int iterations) {
+    unsigned long start = 0;
+    unsigned long stop;
+    int i = 0;
+    int incr = 0;
+    start = micros();
+    for (; i < iterations; i++) { incr++; }
+    stop = micros();
+    Serial.println("---------------------------------------------------");
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop local var 16 bit");
+
+    viIncr = 0;
+    start = micros();
+    for (viI = 0; viI < iterations; viI++) { viIncr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop volatile 16 bit global var");
+
+    gblincr = 0;
+    start = micros();
+    for (gbli = 0; gbli < iterations; gbli++) { gblincr++; }
+    stop = micros();
+    PrintLoopResults2(
+        GetMicroSecondInteral(start, stop),
+        iterations, "iterations - for loop global var 16 bit");
+
+    Serial.println("---------------------------------------------------");
+}
+
 
 unsigned long GetMicroSecondInteral(unsigned long startMicroSeconds, unsigned long stopMicroSeconds) {
     // Scenario where the micros() overflowed since start (about 70 minutes)
@@ -261,13 +441,26 @@ unsigned long GetMicroSecondInteral(unsigned long startMicroSeconds, unsigned lo
 }
 
 void PrintLoopResults(unsigned long interval, int iterations, const char* msg) {
-    Serial.print("Timing loop: ");
+    //Serial.print("Timing loop: ");
     Serial.print(interval);
     Serial.print(" us for ");
     Serial.print(iterations);
     Serial.print(" ");
     Serial.println(msg);
 }
+
+void PrintLoopResults2(unsigned long interval, int iterations, const char* msg) {
+    //Serial.print("Timing loop: ");
+    Serial.print(interval);
+    Serial.print("us avg(");
+    double avg = ((double)interval) / ((double)iterations);
+    Serial.print(avg);
+    Serial.print(") ");
+    Serial.print(iterations);
+    Serial.print(" ");
+    Serial.println(msg);
+}
+
 
 
 
@@ -291,12 +484,12 @@ void TimeFunction(testFunc fn, int iterations) {
     //}
     //Serial.print("interval:"); Serial.println(duration);
 
-    PrintLoopResults(
+    PrintLoopResults2(
         GetMicroSecondInteral(start, micros()),
         iterations, "iterations of function calls");
 
     //return duration;
-    return 0;
+    //return 0;
 }
 //
 //
