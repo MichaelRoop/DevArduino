@@ -20,6 +20,8 @@ IPAddress ip(192, 168, 1, 110); //<<< ENTER YOUR IP ADDRESS HERE!!!
 
 EthernetServer server(80);
 
+bool attempDHCP = false;
+
 // the setup function runs once when you press reset or power the board
 void setup() {
     Serial.begin(115200);
@@ -28,10 +30,39 @@ void setup() {
     }
     Serial.println("Debug serial active");
 
-    Serial.println("Initialise IP with DHCP");
+    if (attempDHCP && Ethernet.begin(mac)) {
+        Serial.println("Attempt Initialise IP with DHCP");
+        Serial.println("DHCP Successful");
+        ip = Ethernet.localIP();
+    }
+    else {
+        Serial.println("Attempt Initialise IP manually");
+        Ethernet.begin(mac, ip);
+    }
 
-    // For getting the IP from an DHCP server
+    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+        Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+        Serial.println("Failed Ethernet setup");
+        while (true) {
+            delay(1);
+        }
+    }
+    else if (Ethernet.linkStatus() == LinkOFF) {
+        Serial.println("Ethernet cable is not connected.");
+        Serial.println("Failed Ethernet setup");
+        while (true) {
+            delay(1);
+        }
+    }
+    else {
+        Serial.println("Ethernet setup");
+    }
+
+
+
+    //// For getting the IP from an DHCP server
     //if (Ethernet.begin(mac) == 0) {
+    //    Serial.println("Initialise IP with DHCP");
     //    Serial.println("Failed to configure Ethernet using DHCP");
     //    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
     //        Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
@@ -39,14 +70,29 @@ void setup() {
     //    else if (Ethernet.linkStatus() == LinkOFF) {
     //        Serial.println("Ethernet cable is not connected.");
     //    }
-    //    // no point in carrying on, so do nothing forevermore:
-    //    while (true) {
-    //        delay(1);
+    //    else {
+    //        // Do manual IP setup
+    //        Serial.println("No DHCP - setting manually - make sure client on same network");
+    //        Ethernet.begin(mac, ip);
+    //            //Serial.println("Failed to configure Ethernet manually");
+    //            if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+    //                Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+    //            }
+    //            else if (Ethernet.linkStatus() == LinkOFF) {
+    //                Serial.println("Ethernet cable is not connected.");
+    //            }
+    //        
     //    }
+    //    //// no point in carrying on, so do nothing forevermore:
+    //    //while (true) {
+    //    //    delay(1);
+    //    //}
+    //}
+    //else {
+    //    ip = Ethernet.localIP();
     //}
 
-    //ip = Ethernet.localIP();
-    Ethernet.begin(mac, ip);
+    //Ethernet.begin(mac, ip);
 
     // print your local IP address:
     Serial.print("My IP address: ");
@@ -59,6 +105,8 @@ void setup() {
 
 }
 
+bool isDark = false;
+int count = 0;
 
 // the loop function runs over and over again until power down or reset
 void loop() {
@@ -69,7 +117,7 @@ void loop() {
         boolean currentLineIsBlank = true;
         while (client.connected()) {
             if (client.available()) {
-                char c = client.read();
+                char c = (char)client.read();
                 //Serial.print("Got data:");
                 //if (c == '\r') {
                 //    Serial.println('\\r');
@@ -77,9 +125,9 @@ void loop() {
                 //else if (c == '\n') {
                 //    Serial.println('\\n');
                 //}
-                ////else {
+                //else {
                 //    Serial.print(c);
-                ////}
+                //}
 
                 // For this simple test just check for end of line and send back a response
                 if (c == '\n' && currentLineIsBlank) {
@@ -91,15 +139,31 @@ void loop() {
                     client.println("HTTP/1.1 200 OK");
                     client.println("Content-Type: text/html");
                     client.println();
+                    client.println("<!DOCTYPE html>");
 
-                    //serves a different version of a website depending on whether or not the button
-                    //connected to pin 2 is pressed.
-                    //if (buttonPress == 1) {
-                    //    client.println("<cke:html><cke:body bgcolor=#FFFFFF>LIGHT!</cke:body></cke:html>");
-                    //}
-                    //else if (buttonPress == 0) {
-                        client.println("<cke:html><cke:body bgcolor=#000000 text=#FFFFFF>DARKxxx!</cke:body></cke:html>");
-                    //}
+                   //Toggles a different version of a website each time a refresh happens. Two complete lines per refresh
+                    count++;
+                    if (count % 2 == 0) {
+                        isDark = !isDark;
+                    }
+
+                    if (isDark) {
+                        client.print("<html>");
+                        client.print("<body style='background-color:darkblue; color:white'>");
+                        client.print("<h1>DARK!</h1>");
+                        client.print("</body>");
+                        client.println("</html>");
+                    }
+                    else {
+                        client.print("<html>");
+                        client.print("<body style='background-color:powderblue;'>");
+                        client.print("<h1>LIGHT!</h1>");
+                        client.print("</body>");
+                        client.println("</html>");
+                    }
+
+
+
                     break;
                 }
                 if (c == '\n') {
