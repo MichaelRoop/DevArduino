@@ -37,9 +37,16 @@ void setup() {
         File fs = SD.open("data1.Bin", FILE_WRITE);
         if (fs != NULL) {
             dataStruct_t ds;
+            //Serial.print("bVal="); Serial.println(ds.bVal);
+            //Serial.print("fVal="); Serial.println(ds.fVal);
+            //Serial.print("iVal="); Serial.println(ds.iVal);
             ds.bVal = 111;
             ds.fVal = 2.22;
             ds.iVal = 3389;
+            //Serial.print("bVal="); Serial.println(ds.bVal);
+            //Serial.print("fVal="); Serial.println(ds.fVal);
+            //Serial.print("iVal="); Serial.println(ds.iVal);
+
             uint8_t* ptr = (uint8_t*)&ds;
             unsigned int time = 0;
             unsigned int start = 0;
