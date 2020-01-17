@@ -4,8 +4,13 @@
  Author:	Michael
 */
 
+
 #include <SPI.h>
 #include <SD.h>
+
+#define DBG_LOG
+#include <ArduinoDbgLog.h>
+#include <ArduinoFileManager.h>
 
 const int sdPin = 4;
 
@@ -24,11 +29,12 @@ public:
 // the setup function runs once when you press reset or power the board
 void setup() {
     // Open serial communications and wait for port to open:
-    Serial.begin(115400);
-    while (!Serial) {
-        ; // wait for serial port to connect. Needed for native USB port only
-    }
+    DBG_INIT(115400);
+   
+    DBG_OUT("This is: %i of: %i, then: 0x%X\n", 233, 6233, 32133);
+    DBG_OUT("BLAH BLAH\n");
 
+    //return;
     if (!InitSD(sdPin)) {
         while (1);
     }

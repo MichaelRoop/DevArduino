@@ -23,7 +23,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoSDCardInfo", "Arduin
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoSDCardReadWrite", "ArduinoSDCardReadWrite\ArduinoSDCardReadWrite.vcxproj", "{AF17D64D-12E9-4679-98BD-207F699B7D93}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoSDCardBinaryReadWrite", "ArduinoSDCardBinaryReadWrite\ArduinoSDCardBinaryReadWrite.vcxproj", "{A3DA9EA5-6C86-4208-B116-CC033A0E0821}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoFileManager", "ArduinoFileManager\ArduinoFileManager.vcxitems", "{29C2C5FA-31EA-4163-B341-0C4D641CB41B}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
+		ArduinoFileManager\ArduinoFileManager.vcxitems*{a3da9ea5-6c86-4208-b116-cc033a0e0821}*SharedItemsImports = 4
+		ArduinoFileManager\ArduinoFileManager.vcxitems*{af17d64d-12e9-4679-98bd-207f699b7d93}*SharedItemsImports = 4
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
 		Debug|ARM64 = Debug|ARM64
@@ -113,6 +122,14 @@ Global
 		{AF17D64D-12E9-4679-98BD-207F699B7D93}.Release|ARM64.ActiveCfg = Release|Win32
 		{AF17D64D-12E9-4679-98BD-207F699B7D93}.Release|x86.ActiveCfg = Release|Win32
 		{AF17D64D-12E9-4679-98BD-207F699B7D93}.Release|x86.Build.0 = Release|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Debug|ARM.ActiveCfg = Debug|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Debug|x86.ActiveCfg = Debug|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Debug|x86.Build.0 = Debug|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Release|ARM.ActiveCfg = Release|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Release|ARM64.ActiveCfg = Release|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Release|x86.ActiveCfg = Release|Win32
+		{A3DA9EA5-6C86-4208-B116-CC033A0E0821}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
