@@ -56,7 +56,7 @@ void setup() {
             if (fs2 != NULL) {
                 ds.bVal = 0;
                 ds.fVal = 0;
-                ds.iVal = 0;  
+                ds.iVal = 0;
 
                 start = micros();
                 size = fs2.readBytes(ptr, sizeof(ds));
