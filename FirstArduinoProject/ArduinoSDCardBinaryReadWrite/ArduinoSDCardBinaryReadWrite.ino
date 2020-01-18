@@ -5,12 +5,17 @@
 */
 
 
+//#include "TestSubClass.h"
+//#include "ArdDbgLogger.h"
+//#include "ArdDbgLogger.h"
+//#include "ArdDbgLogger.h"
 #include <SPI.h>
 #include <SD.h>
 
 #define DBG_LOG
 #include <ArduinoDbgLog.h>
 #include <ArduinoFileManager.h>
+//#include <TestS>
 
 const int sdPin = 4;
 
@@ -34,7 +39,14 @@ void setup() {
     DBG_OUT("This is: %i of: %i, then: 0x%X\n", 233, 6233, 32133);
     DBG_OUT("BLAH BLAH\n");
 
-    //return;
+
+    //TestSub ts;
+    //ts.PrintMsg();
+    TestSubCaller tsc;
+    tsc.InvokeSub();
+
+
+    return;
     if (!InitSD(sdPin)) {
         while (1);
     }

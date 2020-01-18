@@ -9,6 +9,15 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx</Extensions>
     </Filter>
+    <Filter Include="TestSub">
+      <UniqueIdentifier>{788e764a-17b8-430c-a256-3b08fbf7b142}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestSub\include">
+      <UniqueIdentifier>{86478cd8-b4a6-4d70-b4dc-f05a660dbd60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestSub\src">
+      <UniqueIdentifier>{f4533211-e2c8-4d72-a19a-2445c279cfc6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\ArduinoFileManager.cpp">
@@ -16,6 +25,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\ArduinoDbgLog.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\TestSub\src\TestSub.cpp">
+      <Filter>TestSub\src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +40,9 @@
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\ArduinoDbgLog.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\TestSub\include\TestSub.h">
+      <Filter>TestSub\include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

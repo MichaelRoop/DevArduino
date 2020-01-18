@@ -2,6 +2,8 @@
 #include <stdio.h>
 //#include <stdarg.h>
 
+#include <TestSub/include/TestSub.h>
+
 //void DBG_OUTPUT_HELPER::DO_IT(const char* format, ... ts) {
 //	char data[100];
 //	sprintf(data, format, ts);
@@ -16,3 +18,8 @@
 //	//}
 //
 //}
+
+void TestSubCaller::InvokeSub() {
+	TestSub ts;
+	ts.PrintMsg();
+}

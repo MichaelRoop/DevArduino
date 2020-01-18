@@ -10,7 +10,6 @@
 	#include "WProgram.h"
 #endif
 
-
 #ifdef DBG_LOG
 	char __LOG_data__[100];
 	#define DBG_INIT(baud) Serial.begin(baud); while(!Serial){;}
@@ -20,6 +19,10 @@
 	#define DBG_OUT(format,...)
 #endif // DBG_LOG
 
-
+// test code for project structure
+class TestSubCaller {
+public:
+	void InvokeSub();
+};
 
 #endif

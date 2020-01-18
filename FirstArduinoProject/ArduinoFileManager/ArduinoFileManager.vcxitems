@@ -21,8 +21,10 @@
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)src\ArduinoDbgLog.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)src\ArduinoFileManager.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\TestSub\src\TestSub.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)src\ArduinoDbgLog.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\TestSub\include\TestSub.h" />
   </ItemGroup>
 </Project>
