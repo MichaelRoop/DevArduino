@@ -134,7 +134,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties config.Debug.customdebug_uno_debugger_type="universal" />
+      <UserProperties config.Debug.customdebug_uno_debugger_type="universal" VM_ADDITIONAL_COMPILER_CPP_FLAGS="-I&quot;{build.project_path}/src&quot;" VM_ADDITIONAL_COMPILER_FLAGS="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

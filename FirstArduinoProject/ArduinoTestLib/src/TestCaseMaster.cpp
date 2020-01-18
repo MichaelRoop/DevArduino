@@ -3,9 +3,7 @@
 // 
 
 #include "TestCaseMaster.h"
-// TODO - find out why it is not finding the headers
-//#include "src/TestCases/TestLogger/include/DbgLoggerTestCases.h"
-#include "D:\Dev\Arduino\FirstArduinoProject\ArduinoTestLib\src\TestCases\TestLogger\include/DbgLoggerTestCases.h"
+#include "TestCases/TestLogger/include/DbgLoggerTestCases.h"
 
 TestCaseMaster::TestCaseMaster() {
 }

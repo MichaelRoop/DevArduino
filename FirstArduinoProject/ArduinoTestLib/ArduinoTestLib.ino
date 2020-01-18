@@ -8,6 +8,8 @@
 //#include <src/TestCaseBase.h>
 
 #include "src/TestCaseMaster.h"
+#include "src/TestCases/TestLogger/include/DbgLoggerTestCases.h"
+
 
 void setup() {
 

@@ -9,20 +9,11 @@
 #include "WProgram.h"
 #endif
 
-//#include "src/TestCaseBase.h"
-#include "D:\Dev\Arduino\FirstArduinoProject\ArduinoTestLib\src/TestCaseBase.h"
+#include "TestCaseBase.h"
 
 class DbgLoggerTestCases : public TestCaseBase {
 protected:
-	void DoSpecificTests(TestResults* results) override {
-		results->AddResult(true);
-		results->AddResult(true);
-		results->AddResult(true);
-		results->AddResult(false);
-		results->AddResult(false);
-	}
+	void DoSpecificTests(TestResults* results) override;
 };
-
-//D:\Dev\Arduino\FirstArduinoProject\ArduinoTestLib\src\TestCases\TestLogger\source
 
 #endif
