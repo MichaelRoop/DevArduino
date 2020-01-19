@@ -14,6 +14,7 @@
 class DbgLoggerTestCases : public TestCaseBase {
 protected:
 	void DoSpecificTests(TestResults* results) override;
+	//void PrintTestSectionHeader("") override;
 };
 
 #endif

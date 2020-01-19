@@ -15,6 +15,9 @@ class TestCaseBase {
 public:
 	TestResults* DoTests(TestResults* results);
 protected:
+	void PrintTestSectionHeader(const char* msg);
+	bool PrintTestResult(bool isOk, const char* name);
+	void PrintTestSectionFooter(TestResults* results);
 	virtual void DoSpecificTests(TestResults* results);
 };
 
