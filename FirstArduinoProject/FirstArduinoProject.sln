@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArdDbgLogger", "ArdDbgLogge
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoTestLib", "ArduinoTestLib\ArduinoTestLib.vcxproj", "{BBD43745-D3B6-431F-906A-A8EE4AE4BAC1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoScratch", "ArduinoScratch\ArduinoScratch.vcxproj", "{2597188B-4339-41AB-A89A-C12024E17A3A}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
@@ -144,6 +146,14 @@ Global
 		{BBD43745-D3B6-431F-906A-A8EE4AE4BAC1}.Release|ARM64.ActiveCfg = Release|Win32
 		{BBD43745-D3B6-431F-906A-A8EE4AE4BAC1}.Release|x86.ActiveCfg = Release|Win32
 		{BBD43745-D3B6-431F-906A-A8EE4AE4BAC1}.Release|x86.Build.0 = Release|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Debug|ARM.ActiveCfg = Debug|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Debug|x86.ActiveCfg = Debug|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Debug|x86.Build.0 = Debug|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Release|ARM.ActiveCfg = Release|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Release|ARM64.ActiveCfg = Release|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Release|x86.ActiveCfg = Release|Win32
+		{2597188B-4339-41AB-A89A-C12024E17A3A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
