@@ -41,8 +41,32 @@ namespace TestNamespace2
 {
 	class sameTest {
 	public:
-		sameTest() {}
-		//string ToString() { return "BLAH"; }
+		sameTest() {
+			this->myMsg = -1;
+			this->myMsg = L"No Msg";
+		}
+		
+		
+		sameTest(int num, const wchar_t* msg) {
+			this->myNum = num;
+			this->myMsg = msg;
+		}
+
+		std::wstring ToStringX() { 
+			std::wstringstream w;
+			w
+				<< std::endl << L"sameTest (" << this << ")" << "{" << std::endl
+				<< "  myNum: " << this->myNum << std::endl
+				<< "  myMsg: " << this->myMsg << std::endl
+				<< L"}" << std::endl;
+			return w.str();
+	
+		}
+	private:
+		int myNum;
+		std::wstring myMsg;
+
+
 		//virtual override std::string ToString() { retrun "blah"; }
 
 
@@ -116,8 +140,8 @@ namespace TestNamespace2
 		TEST_METHOD(sameTestCase) {
 			Logger::WriteMessage("** sameTestCase ** **2** Log test case message to output");
 
-			sameTest t1;
-			sameTest t2;
+			sameTest t1(1, L"Blah blah");
+			sameTest t2(122, L"Blah blah and even more");;
 			//wchar_t x[50];
 
 
@@ -134,23 +158,42 @@ namespace TestNamespace2
 		TEST_METHOD(sameTestCaseWithDiff) {
 			Logger::WriteMessage("** sameTestCaseWithDiff ** **2** Log test case message to output");
 
-			sameTest t1;
-			sameTest t2;
-			//wchar_t x[50];
-
+			sameTest t1(1, L"Blah blah");
+			sameTest t2(122, L"Blah blah and even more");
+			sameTest t3(1, L"Blah blah");
 
 			//__LineInfo li(x,"YY",22);
 
-			//Assert::AreSame(t1, t1, L"BLAH ti blah");
-			//Assert::AreSame(t1, t1, "Blah", &li);
+			// This would fail. Not same instance
+			//Assert::AreSame(t1, t2);
 
+			// This works because not same instance
+			Assert::AreNotSame(t1, t2);
 
-			Assert::AreSame(t1, t2);
-			//Assert::AreNotSame(t1, t2);
-			//Assert::AreEqual(t1, t2);
+			// This faile. Different instances even if values are the same
+			//Assert::AreSame(t1, t3);
+
 		}
 
+		TEST_METHOD(causeSameErrorWithFuncAndLine) {
+			Logger::WriteMessage("** causeSameErrorWithFuncAndLine ** **2** Log test case message to output");
 
+			sameTest t1(1, L"Blah blah");
+			sameTest t3(1, L"Blah blah");
+
+			//__LineInfo li(__FILEW__,"MyFunc",__LINE__);
+
+			// This fails. Different instances even if values are the same
+			// The test framework will put this function name and line error. Added custom err message
+			Assert::AreSame(t1, t3, L"My message On Error");
+			
+			// This would put the line of object created above
+			//Assert::AreSame(t1, t3, L"My message On Error", &li);
+
+			// Has info from file macro, my function name and line where this error happens
+			//Assert::AreSame(t1, t3, L"My message On Error", new __LineInfo(__FILEW__, "MyFunc", __LINE__));
+
+		}
 
 	};
 }
@@ -163,14 +206,19 @@ namespace Microsoft {
 	namespace VisualStudio {
 		namespace CppUnitTestFramework {
 
-			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(const TestNamespace2::sameTest& x) {
-				return L"blah1";
+			//template <> inline std::wstring ToString<class TestNamespace2::sameTest>(TestNamespace2::sameTest& st) {
+			//	return st.ToStringX();  //L"blah1";
+			//}
+
+
+			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(const TestNamespace2::sameTest& st) {
+				return ((TestNamespace2::sameTest&)st).ToStringX();  //L"blah1";
 			}
-			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(const TestNamespace2::sameTest* y) {
-				return L"blah2";
+			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(const TestNamespace2::sameTest* st) {
+				return ((TestNamespace2::sameTest*)st)->ToStringX(); // L"blah2";
 			}
-			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(TestNamespace2::sameTest* z) {
-				return L"blah3";
+			template <> inline std::wstring ToString<class TestNamespace2::sameTest>(TestNamespace2::sameTest* st) {
+				return st->ToStringX(); //L"blah3";
 			}
 
 
