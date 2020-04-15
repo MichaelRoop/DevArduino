@@ -25,11 +25,16 @@
 
 #include <SoftwareSerial.h>
 
+#ifndef SECTION_DATA
 int i = 0;
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
 bool hasInput = false;
+#define IN_BUFF_SIZE 100
+char buff[IN_BUFF_SIZE];
+unsigned char inIndex = 0;
+#endif // !SECTION_DATA
 
 
 // the setup function runs once when you press reset or power the board
@@ -59,9 +64,87 @@ void SetupCommunications(long dbgBaud, long btBaud) {
 
 void ListenToBTData() {
 	if (btSerial.available() > 0) {
+		if (inIndex >= IN_BUFF_SIZE) {
+			inIndex = 0;
+			Serial.println("Corrupt BT input. Purge buffer");
+		}
+
+		buff[inIndex] = (char)btSerial.read();
+		if (buff[inIndex] == '\r') {
+			Serial.write("CR");
+		}
+		else if (buff[inIndex] == '\n') {
+			Serial.write("LN");
+		}
+		else {
+			Serial.write(buff[inIndex]);
+		}
+
+		// Doing \n\r
+		if (buff[inIndex] == '\r') {
+			Serial.println("Printing msg in buffer");
+			hasInput = true;
+			Serial.write(buff, inIndex + 1);
+			btSerial.write(buff, inIndex + 1);
+			memset(buff, 0, IN_BUFF_SIZE);
+			inIndex = 0;
+		}
+		else {
+			inIndex++;
+			// Wipe out buffer if too long
+			if (inIndex >= IN_BUFF_SIZE) {
+				inIndex = 0;
+				Serial.println("Corrupt BT input. Purge buffer");
+			}
+			else {
+
+
+			}
+
+		}
+	}
+	else {
+		if (hasInput) {
+			hasInput = false;
+			//Serial.println("");
+			// Bounce a message back to the BT terminal
+			//btSerial.write("Finished processing input\n");
+		}
+
+		if (i % 50 == 0) {
+			Serial.print("No BT msg # ");
+			Serial.print((i / 10));
+			Serial.println("");
+		}
+		i++;
+		delay(100);
+	}
+
+		/*
+
 		hasInput = true;
 		// Just bounce it to the serial output for debugging 
-		Serial.write(btSerial.read());
+		int in = btSerial.read();
+
+		// bounce back to both
+		btSerial.write(in);
+		Serial.write(in);
+
+		//// debug incoming
+		//if (in == '\r') {
+		//	Serial.write("\\r");
+		//}
+		//else if (in == '\n') {
+		//	Serial.write("\\n");
+		//}
+		//else {
+		//	Serial.write(in);
+		//}
+
+
+
+		//Serial.write(btSerial.read());
+
 		// In the real world we would loop through all the characters and
 		// assemble the message. Then act on message
 
@@ -78,9 +161,9 @@ void ListenToBTData() {
 	else {
 		if (hasInput) {
 			hasInput = false;
-			Serial.println("");
+			//Serial.println("");
 			// Bounce a message back to the BT terminal
-			btSerial.write("Finished processing input\n");
+			//btSerial.write("Finished processing input\n");
 		}
 		if (i % 50 == 0) {
 			Serial.print("No BT msg # ");
@@ -90,4 +173,5 @@ void ListenToBTData() {
 		i++;
 		delay(100);
 	}
+		*/
 }

@@ -58,7 +58,7 @@ void SetupCommunications(long dbgBaud, long btBaud) {
 // Private methods
 
 /**
- * Receive AT commands from serial monitor and pass them to Bluetooth module.
+ * Receive AT commands from VS serial monitor and pass them to Bluetooth module.
  * Set the serial monitor to add LF and CRL to outgoing
  * The shield must already be switched via toggle to CMD mode. Cannot be done
  * programatically.  Here is the configuration info from AT commands
@@ -79,12 +79,18 @@ unsigned char inIndex = 0;
 
 void SendReceiveBT_AT_Cmds() {
 
+    //btSerial.
+
     // Stream any input from bluetooth to the debug serial stream
     // each entry 1 character (int). Each response finished with \r\n
     if (btSerial.available() > 0) {
         buff[inIndex] = (char)btSerial.read();
+
+        Serial.write(buff[inIndex]);
+        //btSerial.write(buff[inIndex]);
+
         if (buff[inIndex] == '\n') {
-            Serial.write(buff);
+            //Serial.write(buff);
             // In a normal program we could see what msg came in and act on it
             // Not sure what comes in when in data mode
             memset(buff, 0, IN_BUFF_SIZE);
@@ -106,8 +112,13 @@ void SendReceiveBT_AT_Cmds() {
     //}
 
 
-    // Get AT cmd from Serial monitor incoming stream to send to Bluetooth
+    // Get AT cmd from Visual Studio Serial monitor incoming stream to send to Bluetooth
     if (Serial.available() > 0) {
         btSerial.write(Serial.read());
     }
 }
+
+
+void SendReceiveBT_AT_CmdsEcho() {
+}
+
