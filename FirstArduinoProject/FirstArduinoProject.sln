@@ -37,13 +37,21 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GoogleTestBench", "GoogleTe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeTestBench", "NativeTestBench\NativeTestBench.vcxproj", "{EC61A79A-9AF6-49E4-8A3B-C8C5AB8C3E36}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLE", "ArduinoBLE\ArduinoBLE.vcxproj", "{D3CC7390-A4FA-41AC-A322-A3110D1D293C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CheckFirmwareVersion", "C:\Users\Michael\Documents\Arduino\My Examples\CheckFirmwareVersion\CheckFirmwareVersion.vcxproj", "{E20317F8-CC99-4F1C-9A28-E7596509853C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFiNINA-1.4.0", "C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems", "{1573B6EC-6454-4AEE-A383-631E65B71261}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{8a7d6c54-5678-406b-8056-d6d03e67d0a3}*SharedItemsImports = 9
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{a3da9ea5-6c86-4208-b116-cc033a0e0821}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{af17d64d-12e9-4679-98bd-207f699b7d93}*SharedItemsImports = 4
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{bbd43745-d3b6-431f-906a-a8ee4ae4bac1}*SharedItemsImports = 4
+		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{d3cc7390-a4fa-41ac-a322-a3110d1d293c}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -210,6 +218,26 @@ Global
 		{EC61A79A-9AF6-49E4-8A3B-C8C5AB8C3E36}.Release|x64.Build.0 = Release|x64
 		{EC61A79A-9AF6-49E4-8A3B-C8C5AB8C3E36}.Release|x86.ActiveCfg = Release|Win32
 		{EC61A79A-9AF6-49E4-8A3B-C8C5AB8C3E36}.Release|x86.Build.0 = Release|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Debug|ARM.ActiveCfg = Debug|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Debug|x64.ActiveCfg = Debug|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Debug|x86.ActiveCfg = Debug|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Debug|x86.Build.0 = Debug|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Release|ARM.ActiveCfg = Release|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Release|ARM64.ActiveCfg = Release|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Release|x64.ActiveCfg = Release|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Release|x86.ActiveCfg = Release|Win32
+		{D3CC7390-A4FA-41AC-A322-A3110D1D293C}.Release|x86.Build.0 = Release|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Debug|ARM.ActiveCfg = Debug|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Debug|x64.ActiveCfg = Debug|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Debug|x86.ActiveCfg = Debug|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Debug|x86.Build.0 = Debug|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Release|ARM.ActiveCfg = Release|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Release|ARM64.ActiveCfg = Release|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Release|x64.ActiveCfg = Release|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Release|x86.ActiveCfg = Release|Win32
+		{E20317F8-CC99-4F1C-9A28-E7596509853C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
