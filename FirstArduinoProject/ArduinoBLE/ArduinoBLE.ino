@@ -17,6 +17,9 @@ BLEService batteryService("180F");
 // 0x2A19 SIG 16 bit value for battery level characteristic 
 BLEUnsignedCharCharacteristic batteryLevelCharacteristic("2A19", BLERead | BLENotify);
 
+BLEService genAttributeService1("1801");
+BLEUnsignedCharCharacteristic serviceChangedCharacteristic("2A05", BLERead);
+
 int oldBatteryLevel = 0;
 long previousMsCount = 0;
 bool connectErrorPosted = false;
@@ -53,11 +56,23 @@ void setup() {
     // This does the Device Name Characteristic
     BLE.setDeviceName("Mikies UNO Wifi Rev2");
 
+    //byte manu[7] = {9,21,22,45};
+    //BLE.setManufacturerData(manu, 4);
+
     // Add the battery service and attach the batteryLevel Characteristic
     BLE.setAdvertisedService(batteryService);
     //BLE.setAdvertisedServiceUuid("2A19"); // Already done on init
     batteryService.addCharacteristic(batteryLevelCharacteristic);
     BLE.addService(batteryService);
+
+    // This just made a duplicate. Original still failed
+    // Service changed characteristic is already in by default. Set it so it can be read
+    BLE.setAdvertisedService(genAttributeService1);
+    genAttributeService1.addCharacteristic(serviceChangedCharacteristic);
+    BLE.addService(genAttributeService1);
+
+    //BLE.adv
+
 
     // Start advertising myself
     BLE.advertise();
@@ -84,7 +99,7 @@ void loop() {
         //int tick = 0;
         while (central.connected()) {
             long ms = millis();
-            if (ms - previousMsCount >= 200) {
+            if (ms - previousMsCount >= 1000) {
                 previousMsCount = ms;
                 UpdateBatteryLevel();
             }
