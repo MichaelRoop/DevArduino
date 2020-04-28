@@ -7,22 +7,27 @@
 #include <WiFiNINA.h>
 #include <ArduinoBLE.h>
 
+#ifndef SECTION_DATA
+
+// 0x180F SIG Battery service
+BLEService batteryService("180F");
+// https://www.bluetooth.com/xml-viewer/?src=https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.battery_level.xml
 //https://rootsaid.com/arduino-ble-example/
 
-// 0x2A19 - 10777 decimal
-BLEService batteryService("2A19");
-//BLEService batteryService("1101");
-// https://www.bluetooth.com/xml-viewer/?src=https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.battery_level.xml
+// 0x2A19 SIG 16 bit value for battery level characteristic 
+BLEUnsignedCharCharacteristic batteryLevelCharacteristic("2A19", BLERead | BLENotify);
 
-//
+int oldBatteryLevel = 0;
+long previousMsCount = 0;
+bool connectErrorPosted = false;
 
-BLEUnsignedCharCharacteristic batteryLevelChar("2101", BLERead | BLENotify);
-
-int i = 0;
+#endif
 
 // the setup function runs once when you press reset or power the board
 void setup() {
     Serial.begin(9600);
+
+    // TODO - This needs to be removed to work if not connected to USB serial port
     while (!Serial) {
         ; // wait for serial port to connect. Needed for Native USB only
     }
@@ -37,6 +42,10 @@ void setup() {
         Serial.println("BLE begun");
     }
 
+    // This is the name that the 'Add Device' sees. 
+    // Visible to users to identify the device
+    BLE.setLocalName("Mikies test Arduino");
+
     // assign event handlers for connected, disconnected to peripheral
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
@@ -44,73 +53,68 @@ void setup() {
     // This does the Device Name Characteristic
     BLE.setDeviceName("Mikies UNO Wifi Rev2");
 
-    //https://rootsaid.com/arduino-ble-example/
-    // This is the name that the 'Add Device' sees
-    BLE.setLocalName("Mikies test Arduino");
-
+    // Add the battery service and attach the batteryLevel Characteristic
     BLE.setAdvertisedService(batteryService);
-    BLE.setAdvertisedServiceUuid("2A19"); // Not sure diff from previous
-
-    batteryService.addCharacteristic(batteryLevelChar);
+    //BLE.setAdvertisedServiceUuid("2A19"); // Already done on init
+    batteryService.addCharacteristic(batteryLevelCharacteristic);
     BLE.addService(batteryService);
+
+    // Start advertising myself
     BLE.advertise();
     Serial.println("Bluetooth device active, waiting for connections...");
 }
 
-bool connectErrorPosted = false;
-
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-
     // Central devices are those reading us
     // We are setup as a peripheral device which provides the services to read
     BLEDevice central = BLE.central();
-
     if (central) {
         Serial.print("Connected to central: ");
+        if (central.hasLocalName()) {
+            Serial.print(central.localName());
+            Serial.print(" : ");
+        }
+        Serial.print(central.deviceName());
+        Serial.print(" : ");
         Serial.println(central.address());
         digitalWrite(LED_BUILTIN, HIGH);
 
         //int tick = 0;
         while (central.connected()) {
-
-            //int battery = analogRead(A0);
-            //int batteryLevel = map(battery, 0, 1023, 0, 100);
-            //Serial.print("Battery Level % is now: ");
-            //Serial.println(batteryLevel);
-            //batteryLevelChar.writeValue(batteryLevel);
-            //batteryLevelChar.writeValue(32);
-            delay(200);
-            //tick++;
-            //if (tick > 10) {
-            //    break;
-            //}
+            long ms = millis();
+            if (ms - previousMsCount >= 200) {
+                previousMsCount = ms;
+                UpdateBatteryLevel();
+            }
         }
         digitalWrite(LED_BUILTIN, LOW);
-        //Serial.print("Disconnected from central");
+        Serial.print("Disconnected from central");
     }
     else {
         if (!connectErrorPosted) {
             connectErrorPosted = true;
-            Serial.println("BLE.central failed");
+            //Serial.println("BLE.central failed");
         }
     }
-
-    //digitalWrite(LED_BUILTIN, LOW);
-    //Serial.print("Disconnected from central: ");
-    //Serial.println(central.address());
-
-
-    if (i % 100 == 0) {
-        Serial.print("Ping ");
-        Serial.print((i / 10));
-        Serial.println("");
-    }
-    i++;
-    delay(50);
 }
 
+
+// Simulate reading battery level
+void UpdateBatteryLevel() {
+    // Read current voltage level on A0 analog input pin to simulate battery charge level
+    int battery = analogRead(A0);
+    int batteryLevel = map(battery, 0, 1023, 0, 100);
+
+    // If level changes update the battery level characteristic
+    if (batteryLevel != oldBatteryLevel) { 
+        Serial.print("Battery Level % is now: ");
+        Serial.println(batteryLevel);
+        batteryLevelCharacteristic.writeValue(batteryLevel);
+        oldBatteryLevel = batteryLevel;
+    }
+}
 
 
 void bleOnConnectHandler(BLEDevice central) {
