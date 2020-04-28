@@ -4,12 +4,18 @@
  Author:	Michael
 */
 
-//#include <SPI.h>
 #include <WiFiNINA.h>
 #include <ArduinoBLE.h>
 
 //https://rootsaid.com/arduino-ble-example/
-BLEService batteryService("1101");
+
+// 0x2A19 - 10777 decimal
+BLEService batteryService("2A19");
+//BLEService batteryService("1101");
+// https://www.bluetooth.com/xml-viewer/?src=https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.battery_level.xml
+
+//
+
 BLEUnsignedCharCharacteristic batteryLevelChar("2101", BLERead | BLENotify);
 
 int i = 0;
@@ -22,7 +28,7 @@ void setup() {
     }
     Serial.println("Debug serial port active");
 
-    //pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
     if (!BLE.begin()) {
         Serial.println("Failed to start BLE");
         while (1);
@@ -34,21 +40,21 @@ void setup() {
     // assign event handlers for connected, disconnected to peripheral
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
+    
+    // This does the Device Name Characteristic
     BLE.setDeviceName("Mikies UNO Wifi Rev2");
-    //BLE.setAdvertisedService(batteryService);
 
-#if !defined(THISDIDNOTWORK)
     //https://rootsaid.com/arduino-ble-example/
     // This is the name that the 'Add Device' sees
     BLE.setLocalName("Mikies test Arduino");
+
     BLE.setAdvertisedService(batteryService);
+    BLE.setAdvertisedServiceUuid("2A19"); // Not sure diff from previous
 
     batteryService.addCharacteristic(batteryLevelChar);
     BLE.addService(batteryService);
-
     BLE.advertise();
     Serial.println("Bluetooth device active, waiting for connections...");
-#endif
 }
 
 bool connectErrorPosted = false;
@@ -57,14 +63,16 @@ bool connectErrorPosted = false;
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-#if !defined(THISDIDNOTWORK)
+    // Central devices are those reading us
+    // We are setup as a peripheral device which provides the services to read
     BLEDevice central = BLE.central();
 
     if (central) {
         Serial.print("Connected to central: ");
         Serial.println(central.address());
-        //digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(LED_BUILTIN, HIGH);
 
+        //int tick = 0;
         while (central.connected()) {
 
             //int battery = analogRead(A0);
@@ -72,9 +80,15 @@ void loop() {
             //Serial.print("Battery Level % is now: ");
             //Serial.println(batteryLevel);
             //batteryLevelChar.writeValue(batteryLevel);
-            batteryLevelChar.writeValue(32);
+            //batteryLevelChar.writeValue(32);
             delay(200);
+            //tick++;
+            //if (tick > 10) {
+            //    break;
+            //}
         }
+        digitalWrite(LED_BUILTIN, LOW);
+        //Serial.print("Disconnected from central");
     }
     else {
         if (!connectErrorPosted) {
@@ -83,11 +97,9 @@ void loop() {
         }
     }
 
-
     //digitalWrite(LED_BUILTIN, LOW);
     //Serial.print("Disconnected from central: ");
     //Serial.println(central.address());
-#endif
 
 
     if (i % 100 == 0) {
