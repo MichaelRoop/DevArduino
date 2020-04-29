@@ -6,20 +6,20 @@
 
 
 #include <ArduinoBLE.h>
-#include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
+//#include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
 
 #ifndef SECTION_DATA
 
-// Create a service that will act as a serial port. Max 20 bytes at a time
-BLEService serialService("9999");
-BLEService serialService2("9990");
+// Create services that will act as a serial port. Max 20 bytes at a time
+BLEService serialServiceIn("9999");
+BLEService serialServiceOut("9990");
 
-// You can write to it, read it by polling or subscribe to a notification
-BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify); // 39320
-BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite | BLERead | BLENotify );  // 39319 // cannot see it with just write
+// Channel going out 0x99,0x98 = 39,320 base 10. Read or get notification
+BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
 
-
-//BLECharacteristic dataCharacteristic("9998", BLERead | BLEWrite | BLENotify, 1, false);
+// Channel coming in 0x99,0x97 = 39,319 base 10. Write -
+// TODO - added Read|Notify because client was not seeing it. Follow up
+BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite | BLERead | BLENotify );
 
 bool hasInput = false;
 #define IN_BUFF_SIZE 500
@@ -52,21 +52,23 @@ void setup() {
     // The Device Name Characteristic
     BLE.setDeviceName("Mikies serial device");
 
-    // assign event handlers for connected, disconnected to peripheral
+    // assign event handlers for connected, disconnected events
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
-    BLE.setAdvertisedService(serialService2);
-    serialService2.addCharacteristic(outByteCharacteristic);
-    BLE.addService(serialService2);
+    // Setup the output service
+    serialServiceOut.addCharacteristic(outByteCharacteristic);
+    BLE.addService(serialServiceOut);
+    BLE.setAdvertisedService(serialServiceOut);
 
-    serialService.addCharacteristic(inByteCharacteristic);
-    inByteCharacteristic.subscribe();
+    // Setup the input service
+    serialServiceIn.addCharacteristic(inByteCharacteristic);
+    //inByteCharacteristic.subscribe();
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
-    BLE.addService(serialService);
+    BLE.addService(serialServiceIn);
+    BLE.setAdvertisedService(serialServiceIn);
 
-    BLE.setAdvertisedService(serialService);
-
+    // Start advertising
     BLE.advertise();
     Serial.println("Bluetooth device active, waiting for connections...");
 }
@@ -79,32 +81,35 @@ void loop() {
         while (central.connected()) {
             //ReadIncoming();
             //ProcessIncomingBuff();
+
+            // TODO figure out if we can pick up completed message here and execute a function
+
         }
         digitalWrite(LED_BUILTIN, LOW);
     }
 }
 
 
-void ReadIncoming() {
-    if (inByteCharacteristic.valueUpdated()) {
-        digitalWrite(LED_BUILTIN, HIGH);
-        byte value = 0;
-        inByteCharacteristic.readValue(value);
-        buff[inIndex] = value;
-        DebugStreamIncoming(buff[inIndex]);
-        digitalWrite(LED_BUILTIN, LOW);
-    }
-
-
-    //byte data[50];
-    //if (dataCharacteristic.valueUpdated()) {
-    //    dataCharacteristic.valueLength();
-    //    int count = dataCharacteristic.readValue(data, 50);
-    //    // At this point we would copy count # of bytes from the in block over to the main buffer
-    //    // TODO - need to preserve the block size copied. need start of index
-    //}
-
-}
+//void ReadIncoming() {
+//    if (inByteCharacteristic.valueUpdated()) {
+//        digitalWrite(LED_BUILTIN, HIGH);
+//        byte value = 0;
+//        inByteCharacteristic.readValue(value);
+//        buff[inIndex] = value;
+//        DebugStreamIncoming(buff[inIndex]);
+//        digitalWrite(LED_BUILTIN, LOW);
+//    }
+//
+//
+//    //byte data[50];
+//    //if (dataCharacteristic.valueUpdated()) {
+//    //    dataCharacteristic.valueLength();
+//    //    int count = dataCharacteristic.readValue(data, 50);
+//    //    // At this point we would copy count # of bytes from the in block over to the main buffer
+//    //    // TODO - need to preserve the block size copied. need start of index
+//    //}
+//
+//}
 
 
 
@@ -170,8 +175,6 @@ void DebugStreamIncoming(char value) {
 
 // Event handler for when data is written to the inByte characteristic
 void inBytesWritten(BLEDevice device, BLECharacteristic  byteCharacteristic) {
-    //Serial.println((char*)byteCharacteristic.value());
-
     digitalWrite(LED_BUILTIN, HIGH);
     // Only expecting 1 byte per write from outside
     byte value = byteCharacteristic.value()[0];
