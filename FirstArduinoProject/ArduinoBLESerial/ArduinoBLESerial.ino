@@ -16,14 +16,11 @@
 
 // Create services that will act as a serial port. Max 20 bytes at a time
 BLEService serialServiceIn("9999");
-BLEService serialServiceOut("9990");
 
-// Channel going out 0x99,0x98 = 39,320 base 10. Read or get notification
+// Out channel 0x99,0x98 = 39,320 base 10. Caller reads or gets notifications from this device
+// In channel 0x99,0x97 = 39,319 base 10. Caller writes to this device 
 BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
-
-// Channel coming in 0x99,0x97 = 39,319 base 10. Write -
-// TODO - added Read|Notify because client was not seeing it. Follow up
-BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite | BLERead | BLENotify );
+BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
 
 bool hasInput = false;
 #define IN_BUFF_SIZE 500
@@ -60,12 +57,8 @@ void setup() {
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
-    // Setup the output service
-    serialServiceOut.addCharacteristic(outByteCharacteristic);
-    BLE.addService(serialServiceOut);
-    BLE.setAdvertisedService(serialServiceOut);
-
-    // Setup the input service
+    // Setup the serial service
+    serialServiceIn.addCharacteristic(outByteCharacteristic);
     serialServiceIn.addCharacteristic(inByteCharacteristic);
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
     BLE.addService(serialServiceIn);
