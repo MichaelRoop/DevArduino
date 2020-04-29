@@ -12,8 +12,11 @@
 
 // Create a service that will act as a serial port. Max 20 bytes at a time
 BLEService serialService("9999");
+BLEService serialService2("9990");
+
 // You can write to it, read it by polling or subscribe to a notification
-BLEByteCharacteristic byteCharacteristic("9998", BLERead | BLEWrite | BLENotify);
+BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify); // 39320
+BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite | BLERead | BLENotify );  // 39319 // cannot see it with just write
 
 
 //BLECharacteristic dataCharacteristic("9998", BLERead | BLEWrite | BLENotify, 1, false);
@@ -49,10 +52,20 @@ void setup() {
     // The Device Name Characteristic
     BLE.setDeviceName("Mikies serial device");
 
-    BLE.setAdvertisedService(serialService);
-    serialService.addCharacteristic(byteCharacteristic);
-    byteCharacteristic.subscribe();
+    // assign event handlers for connected, disconnected to peripheral
+    BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
+    BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
+
+    BLE.setAdvertisedService(serialService2);
+    serialService2.addCharacteristic(outByteCharacteristic);
+    BLE.addService(serialService2);
+
+    serialService.addCharacteristic(inByteCharacteristic);
+    inByteCharacteristic.subscribe();
+    inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
     BLE.addService(serialService);
+
+    BLE.setAdvertisedService(serialService);
 
     BLE.advertise();
     Serial.println("Bluetooth device active, waiting for connections...");
@@ -62,10 +75,10 @@ void setup() {
 void loop() {
     BLEDevice central = BLE.central();
     if (central) {
-        Serial.println("CONNECTED");
+        //Serial.println("CONNECTED");
         while (central.connected()) {
-            ReadIncoming();
-            ProcessIncomingBuff();
+            //ReadIncoming();
+            //ProcessIncomingBuff();
         }
         digitalWrite(LED_BUILTIN, LOW);
     }
@@ -73,10 +86,10 @@ void loop() {
 
 
 void ReadIncoming() {
-    if (byteCharacteristic.valueUpdated()) {
+    if (inByteCharacteristic.valueUpdated()) {
         digitalWrite(LED_BUILTIN, HIGH);
         byte value = 0;
-        byteCharacteristic.readValue(value);
+        inByteCharacteristic.readValue(value);
         buff[inIndex] = value;
         DebugStreamIncoming(buff[inIndex]);
         digitalWrite(LED_BUILTIN, LOW);
@@ -104,10 +117,10 @@ void ProcessIncomingBuff() {
         // At this point we would parse the message to determine what to do
 
         // For demo, just bounce the message back
-        Serial.write(buff, inIndex + 1);
+        //Serial.write(buff, inIndex + 1);
         for (int i = 0; i <= inIndex; i++) {
             digitalWrite(LED_BUILTIN, HIGH);
-            byteCharacteristic.writeValue(buff[i]);
+            outByteCharacteristic.writeValue(buff[i]);
             digitalWrite(LED_BUILTIN, LOW);
         }
 
@@ -121,7 +134,6 @@ void ProcessIncomingBuff() {
         //if (last > 0) {
         //    dataCharacteristic.writeValue(&buff[blockCount * MAX_BLOCK_SIZE], last);
         //}
-
         ResetInBuffer();
     }
     else {
@@ -132,11 +144,6 @@ void ProcessIncomingBuff() {
             ResetInBuffer();
             Serial.println("Corrupt BT input. Buffer purged");
         }
-        else {
-
-
-        }
-
     }
 }
 
@@ -150,6 +157,7 @@ void ResetInBuffer() {
 void DebugStreamIncoming(char value) {
     if (value == '\r') {
         Serial.write("CR");
+        Serial.println("");
     }
     else if (value == '\n') {
         Serial.write("LN");
@@ -158,3 +166,40 @@ void DebugStreamIncoming(char value) {
         Serial.write(value);
     }
 }
+
+
+// Event handler for when data is written to the inByte characteristic
+void inBytesWritten(BLEDevice device, BLECharacteristic  byteCharacteristic) {
+    //Serial.println((char*)byteCharacteristic.value());
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    // Only expecting 1 byte per write from outside
+    byte value = byteCharacteristic.value()[0];
+    //inByteCharacteristic.readValue(value);
+    buff[inIndex] = value;
+    DebugStreamIncoming(buff[inIndex]);
+
+    // Direct push back to caller. Works well
+    //outByteCharacteristic.writeValue(buff[inIndex]);
+
+
+    digitalWrite(LED_BUILTIN, LOW);
+
+    ProcessIncomingBuff();
+
+}
+
+
+void bleOnConnectHandler(BLEDevice central) {
+    // central connected event handler
+    Serial.print("CONNECTED, central: ");
+    Serial.println(central.address());
+}
+
+
+void bleOnDisconnectHandler(BLEDevice central) {
+    // central disconnected event handler
+    Serial.print("DISCONNECTED, central: ");
+    Serial.println(central.address());
+}
+
