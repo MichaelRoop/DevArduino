@@ -2,11 +2,15 @@
  Name:		ArduinoBLESerial.ino
  Created:	4/28/2020 8:55:58 PM
  Author:	Michael
+
+ Sets up the BLE to simulate a serial connection by having one characteristic
+ configured as an incoming channel, and another one as the outgoing
+
+ Tested on the Arduino UNO WIFI Rev2
+
 */
-
-
 #include <ArduinoBLE.h>
-//#include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
+#include <string.h>
 
 #ifndef SECTION_DATA
 
@@ -63,7 +67,6 @@ void setup() {
 
     // Setup the input service
     serialServiceIn.addCharacteristic(inByteCharacteristic);
-    //inByteCharacteristic.subscribe();
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
     BLE.addService(serialServiceIn);
     BLE.setAdvertisedService(serialServiceIn);
@@ -77,40 +80,24 @@ void setup() {
 void loop() {
     BLEDevice central = BLE.central();
     if (central) {
-        //Serial.println("CONNECTED");
+        // This will hold up the loop function as long as the connection persists
         while (central.connected()) {
-            //ReadIncoming();
-            //ProcessIncomingBuff();
-
-            // TODO figure out if we can pick up completed message here and execute a function
-
+            // The message processing is done via the event handler for incoming bytes
         }
-        digitalWrite(LED_BUILTIN, LOW);
+        // Since the current connection has terminated wipe out accumulated in bytes
+        ResetInBuffer();
     }
 }
 
 
-//void ReadIncoming() {
-//    if (inByteCharacteristic.valueUpdated()) {
-//        digitalWrite(LED_BUILTIN, HIGH);
-//        byte value = 0;
-//        inByteCharacteristic.readValue(value);
-//        buff[inIndex] = value;
-//        DebugStreamIncoming(buff[inIndex]);
-//        digitalWrite(LED_BUILTIN, LOW);
-//    }
-//
-//
-//    //byte data[50];
-//    //if (dataCharacteristic.valueUpdated()) {
-//    //    dataCharacteristic.valueLength();
-//    //    int count = dataCharacteristic.readValue(data, 50);
-//    //    // At this point we would copy count # of bytes from the in block over to the main buffer
-//    //    // TODO - need to preserve the block size copied. need start of index
-//    //}
-//
+// TODO - sample code to process multi byte incoming data
+//byte data[50];
+//if (dataCharacteristic.valueUpdated()) {
+//    dataCharacteristic.valueLength();
+//    int count = dataCharacteristic.readValue(data, 50);
+//    // At this point we would copy count # of bytes from the in block over to the main buffer
+//    // TODO - need to preserve the block size copied. need start of index
 //}
-
 
 
 void ProcessIncomingBuff() {
@@ -121,7 +108,7 @@ void ProcessIncomingBuff() {
 
         // At this point we would parse the message to determine what to do
 
-        // For demo, just bounce the message back
+        // For demo, just bounce the message back one byte at a time
         //Serial.write(buff, inIndex + 1);
         for (int i = 0; i <= inIndex; i++) {
             digitalWrite(LED_BUILTIN, HIGH);
