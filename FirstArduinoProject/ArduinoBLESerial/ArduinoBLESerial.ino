@@ -22,6 +22,12 @@ BLEService serialServiceIn("9999");
 BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
 BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
 
+// 0x2901 is CharacteristicUserDescription data type
+BLEDescriptor outputDescriptor("2901", "Serial Output");
+BLEDescriptor inputDescriptor("2901", "Serial Input");
+
+
+
 bool hasInput = false;
 #define IN_BUFF_SIZE 500
 char buff[IN_BUFF_SIZE];
@@ -58,7 +64,9 @@ void setup() {
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
     // Setup the serial service
+    outByteCharacteristic.addDescriptor(outputDescriptor);
     serialServiceIn.addCharacteristic(outByteCharacteristic);
+    inByteCharacteristic.addDescriptor(inputDescriptor);
     serialServiceIn.addCharacteristic(inByteCharacteristic);
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
     BLE.addService(serialServiceIn);
