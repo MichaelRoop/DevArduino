@@ -19,12 +19,23 @@ BLEService serialServiceIn("9999");
 
 // Out channel 0x99,0x98 = 39,320 base 10. Caller reads or gets notifications from this device
 // In channel 0x99,0x97 = 39,319 base 10. Caller writes to this device 
-BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
+//BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
+
+// Need to have at least 20 char in value so that we can send 20, which is BLE limit
+//int BLOCK_SIZE = 20;
+BLECharacteristic bleCharString("9998", BLERead | BLENotify, "01234567890123456789ANDTHENSOME");
+
+// For some reason this does not work
+//BLECharacteristic bleCharString("9998", BLERead | BLENotify, BLOCK_SIZE, false);
+
 BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
 
 // 0x2901 is CharacteristicUserDescription data type
 BLEDescriptor outputDescriptor("2901", "Serial Output");
 BLEDescriptor inputDescriptor("2901", "Serial Input");
+
+
+
 
 
 
@@ -54,6 +65,7 @@ void setup() {
         Serial.println("BLE begun");
     }
 
+    
     // Name that users see in list for 'Add Device'
     BLE.setLocalName("Mikies Arduino serial device");
     // The Device Name Characteristic
@@ -64,8 +76,13 @@ void setup() {
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
     // Setup the serial service
-    outByteCharacteristic.addDescriptor(outputDescriptor);
-    serialServiceIn.addCharacteristic(outByteCharacteristic);
+    //outByteCharacteristic.addDescriptor(outputDescriptor);
+    //serialServiceIn.addCharacteristic(outByteCharacteristic);
+
+    bleCharString.addDescriptor(outputDescriptor);
+    serialServiceIn.addCharacteristic(bleCharString);
+
+
     inByteCharacteristic.addDescriptor(inputDescriptor);
     serialServiceIn.addCharacteristic(inByteCharacteristic);
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
@@ -109,13 +126,63 @@ void ProcessIncomingBuff() {
 
         // At this point we would parse the message to determine what to do
 
-        // For demo, just bounce the message back one byte at a time
-        //Serial.write(buff, inIndex + 1);
-        for (int i = 0; i <= inIndex; i++) {
-            digitalWrite(LED_BUILTIN, HIGH);
-            outByteCharacteristic.writeValue(buff[i]);
-            digitalWrite(LED_BUILTIN, LOW);
+        //// For demo, just bounce the message back one byte at a time
+        ////Serial.write(buff, inIndex + 1);
+        //for (int i = 0; i <= inIndex; i++) {
+        //    digitalWrite(LED_BUILTIN, HIGH);
+        //    outByteCharacteristic.writeValue(buff[i]);
+        //    digitalWrite(LED_BUILTIN, LOW);
+        //}
+
+        Serial.print("Sending back ");
+        Serial.print(inIndex);
+        Serial.println(" bytes to write");
+
+
+        // Will not send more than 20 at a time
+        //int result = bleCharString.writeValue(buff, 8);
+        //int result = bleCharString.writeValue(buff, inIndex);
+        //Serial.print("Write result ");
+        //Serial.println(result);
+
+        //// This works by iterating through 5 byte blocks. Suspect because had a 5 byte value on init
+        //int count = inIndex / 5;
+        //int last = (inIndex % 5);
+        //int lastIndex = 0;
+        //for (int i = 0; i < count; i++) {
+        //    lastIndex = i * 5;
+        //    bleCharString.writeValue(&buff[lastIndex], 5);
+        //}
+        //if (last > 0) {
+        //    bleCharString.writeValue(&buff[lastIndex + 5], last);
+        //}
+
+        // This works by iterating through BLOCK_SIZE byte blocks.
+        int count = inIndex / MAX_BLOCK_SIZE;
+        int last = (inIndex % MAX_BLOCK_SIZE);
+        int lastIndex = 0;
+        for (int i = 0; i < count; i++) {
+            lastIndex = i * MAX_BLOCK_SIZE;
+            bleCharString.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE);
         }
+        if (last > 0) {
+            if (lastIndex > 0) {
+                lastIndex += MAX_BLOCK_SIZE;
+            }
+            bleCharString.writeValue(&buff[lastIndex], last);
+        }
+
+
+
+
+        //bleCharString.writeValue(buff, 5);
+        //bleCharString.writeValue(&buff[5], 5);
+        //bleCharString.writeValue(&buff[10], 4);
+
+
+
+
+
 
         //// or write by 20 byte block in raw
         //int byteCount = inIndex + 1;
@@ -148,16 +215,17 @@ void ResetInBuffer() {
 
 
 void DebugStreamIncoming(char value) {
-    if (value == '\r') {
-        Serial.write("CR");
-        Serial.println("");
-    }
-    else if (value == '\n') {
-        Serial.write("LN");
-    }
-    else {
-        Serial.write(value);
-    }
+    // TODO - disable to see if it speeds up
+    //if (value == '\r') {
+    //    Serial.write("CR");
+    //    Serial.println("");
+    //}
+    //else if (value == '\n') {
+    //    Serial.write("LN");
+    //}
+    //else {
+    //    Serial.write(value);
+    //}
 }
 
 
