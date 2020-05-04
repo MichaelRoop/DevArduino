@@ -14,6 +14,9 @@
 
 #ifndef SECTION_DATA
 
+#define MAX_BLOCK_SIZE 20
+
+
 // Create services that will act as a serial port. Max 20 bytes at a time
 BLEService serialServiceIn("9999");
 
@@ -23,10 +26,11 @@ BLEService serialServiceIn("9999");
 
 // Need to have at least 20 char in value so that we can send 20, which is BLE limit
 //int BLOCK_SIZE = 20;
-BLECharacteristic bleCharString("9998", BLERead | BLENotify, "01234567890123456789ANDTHENSOME");
+BLECharacteristic bleCharString("9998", BLERead | BLENotify, "01234567890123456789");
 
 // For some reason this does not work
-//BLECharacteristic bleCharString("9998", BLERead | BLENotify, BLOCK_SIZE, false);
+// In their source code, they turn off notification if I put in notify. Seems wrong
+//BLECharacteristic bleCharString("9998", BLERead | BLENotify, MAX_BLOCK_SIZE, false);
 
 BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
 
@@ -35,15 +39,10 @@ BLEDescriptor outputDescriptor("2901", "Serial Output");
 BLEDescriptor inputDescriptor("2901", "Serial Input");
 
 
-
-
-
-
 bool hasInput = false;
 #define IN_BUFF_SIZE 500
 char buff[IN_BUFF_SIZE];
 unsigned char inIndex = 0;
-#define MAX_BLOCK_SIZE 20
 
 #endif
 
@@ -81,7 +80,6 @@ void setup() {
 
     bleCharString.addDescriptor(outputDescriptor);
     serialServiceIn.addCharacteristic(bleCharString);
-
 
     inByteCharacteristic.addDescriptor(inputDescriptor);
     serialServiceIn.addCharacteristic(inByteCharacteristic);
