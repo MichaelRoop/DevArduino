@@ -215,7 +215,8 @@ void ProcessIncomingBuff() {
 
 
 void ResetInBuffer() {
-    memset(buff, 0, IN_BUFF_SIZE);
+    // Reset with spaces. Acts weird if you use 0x00 null)
+    memset(buff, 0x20, IN_BUFF_SIZE);
     inIndex = 0;
 }
 
