@@ -25,7 +25,10 @@ BLEService serialService("9999");
 BLECharacteristic outputCharacteristic("9998", BLERead | BLENotify, MAX_BLOCK_SIZE);
 
 // In channel 0x99,0x97 = 39,319 base 10. Caller writes to this device 
-BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
+//BLEByteCharacteristic inputCharacteristic("9997", BLEWrite);
+BLECharacteristic inputCharacteristic("9997", BLEWrite, MAX_BLOCK_SIZE);
+
+
 
 // 0x2901 is CharacteristicUserDescription data type
 BLEDescriptor outputDescriptor("2901", "Serial Output");
@@ -70,10 +73,12 @@ void setup() {
     setupSerialDescriptor(serialService, outputCharacteristic, outputDescriptor);
 
     // Setup the serial service - input
-    inByteCharacteristic.addDescriptor(inputDescriptor);
-    serialService.addCharacteristic(inByteCharacteristic);
-    inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
-    
+    //inputCharacteristic.addDescriptor(inputDescriptor);
+    //serialService.addCharacteristic(inputCharacteristic);
+    setupSerialDescriptor(serialService, inputCharacteristic, inputDescriptor);
+    inputCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
+
+
     // Add service to BLE and start advertising
     BLE.addService(serialService);
     BLE.setAdvertisedService(serialService);
@@ -230,24 +235,151 @@ void DebugStreamIncoming(char value) {
 }
 
 
+byte inBuff[MAX_BLOCK_SIZE];
+
 // Event handler for when data is written to the inByte characteristic
 void inBytesWritten(BLEDevice device, BLECharacteristic  byteCharacteristic) {
     digitalWrite(LED_BUILTIN, HIGH);
-    // Only expecting 1 byte per write from outside
-    byte value = byteCharacteristic.value()[0];
-    //inByteCharacteristic.readValue(value);
-    buff[inIndex] = value;
-    DebugStreamIncoming(buff[inIndex]);
 
-    // Direct push back to caller. Works well
-    //outByteCharacteristic.writeValue(buff[inIndex]);
+    int count = inputCharacteristic.readValue(inBuff, MAX_BLOCK_SIZE);
+    ProcessIncomingBuff2(inBuff, count);
+
+    //// Only expecting 1 byte per write from outside
+    //byte value = byteCharacteristic.value()[0];
+    ////inByteCharacteristic.readValue(value);
+    //buff[inIndex] = value;
+    //DebugStreamIncoming(buff[inIndex]);
+
+    //// Direct push back to caller. Works well
+    ////outByteCharacteristic.writeValue(buff[inIndex]);
 
 
     digitalWrite(LED_BUILTIN, LOW);
 
-    ProcessIncomingBuff();
+//    ProcessIncomingBuff();
 
 }
+
+
+void ProcessIncomingBuff2(uint8_t* inData, int length) {
+    // index is pos of next write
+    memcpy(&buff[inIndex], inData, length);
+
+    int newIndex = inIndex + length;
+    // This is where I would process the data. Remove complete command, etc
+    inIndex = newIndex;
+
+    Serial.write(inData, length); Serial.println("");
+    Serial.write(buff, newIndex); Serial.println("");
+
+    // Just bounce back whatever came in
+    outputCharacteristic.writeValue(inData, length);
+    // Check if there was a \n and simply obliterate main buffer
+    for (int i = 0; i < length; i++) {
+        if (inData[i] == '\n') {
+            ResetInBuffer();
+            break;
+        }
+    }
+
+
+
+
+
+
+    /*
+    // Doing \n\r terminator sequence
+    if (buff[inIndex] == '\r') {
+        Serial.println("Printing msg in buffer");
+        hasInput = true;
+
+        // At this point we would parse the message to determine what to do
+
+        //// For demo, just bounce the message back one byte at a time
+        ////Serial.write(buff, inIndex + 1);
+        //for (int i = 0; i <= inIndex; i++) {
+        //    digitalWrite(LED_BUILTIN, HIGH);
+        //    outByteCharacteristic.writeValue(buff[i]);
+        //    digitalWrite(LED_BUILTIN, LOW);
+        //}
+
+        Serial.print("Sending back ");
+        Serial.print(inIndex);
+        Serial.println(" bytes to write");
+
+
+        // Will not send more than 20 at a time
+        //int result = bleCharString.writeValue(buff, 8);
+        //int result = bleCharString.writeValue(buff, inIndex);
+        //Serial.print("Write result ");
+        //Serial.println(result);
+
+        //// This works by iterating through 5 byte blocks. Suspect because had a 5 byte value on init
+        //int count = inIndex / 5;
+        //int last = (inIndex % 5);
+        //int lastIndex = 0;
+        //for (int i = 0; i < count; i++) {
+        //    lastIndex = i * 5;
+        //    bleCharString.writeValue(&buff[lastIndex], 5);
+        //}
+        //if (last > 0) {
+        //    bleCharString.writeValue(&buff[lastIndex + 5], last);
+        //}
+
+        // This works by iterating through BLOCK_SIZE byte blocks.
+        int count = inIndex / MAX_BLOCK_SIZE;
+        int last = (inIndex % MAX_BLOCK_SIZE);
+        int lastIndex = 0;
+        for (int i = 0; i < count; i++) {
+            lastIndex = i * MAX_BLOCK_SIZE;
+            outputCharacteristic.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE);
+        }
+        if (last > 0) {
+            if (lastIndex > 0) {
+                lastIndex += MAX_BLOCK_SIZE;
+            }
+            outputCharacteristic.writeValue(&buff[lastIndex], last);
+        }
+
+
+
+
+        //bleCharString.writeValue(buff, 5);
+        //bleCharString.writeValue(&buff[5], 5);
+        //bleCharString.writeValue(&buff[10], 4);
+
+
+
+
+
+
+        //// or write by 20 byte block in raw
+        //int byteCount = inIndex + 1;
+        //int blockCount = byteCount / MAX_BLOCK_SIZE;
+        //int last = byteCount - (blockCount * MAX_BLOCK_SIZE);
+        //for (int i = 0; i < blockCount; i++) {
+        //    dataCharacteristic.writeValue(&buff[i * MAX_BLOCK_SIZE], MAX_BLOCK_SIZE);
+        //}
+        //if (last > 0) {
+        //    dataCharacteristic.writeValue(&buff[blockCount * MAX_BLOCK_SIZE], last);
+        //}
+        ResetInBuffer();
+    }
+    else {
+        //
+        inIndex++;
+        // Wipe out buffer if too long
+        if (inIndex >= IN_BUFF_SIZE) {
+            ResetInBuffer();
+            Serial.println("Corrupt BT input. Buffer purged");
+        }
+    }
+    */
+}
+
+
+
+
 
 
 void bleOnConnectHandler(BLEDevice central) {
