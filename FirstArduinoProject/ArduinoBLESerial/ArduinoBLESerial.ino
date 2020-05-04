@@ -18,20 +18,13 @@
 
 
 // Create services that will act as a serial port. Max 20 bytes at a time
-BLEService serialServiceIn("9999");
+BLEService serialService("9999");
 
 // Out channel 0x99,0x98 = 39,320 base 10. Caller reads or gets notifications from this device
+// Need a write in Setup with block of MAX_BLOCK_SIZE size OR it is not recognized by caller
+BLECharacteristic outputCharacteristic("9998", BLERead | BLENotify, MAX_BLOCK_SIZE);
+
 // In channel 0x99,0x97 = 39,319 base 10. Caller writes to this device 
-//BLEByteCharacteristic outByteCharacteristic("9998", BLERead | BLENotify);
-
-// Need to have at least 20 char in value so that we can send 20, which is BLE limit
-//int BLOCK_SIZE = 20;
-BLECharacteristic bleCharString("9998", BLERead | BLENotify, "01234567890123456789");
-
-// For some reason this does not work
-// In their source code, they turn off notification if I put in notify. Seems wrong
-//BLECharacteristic bleCharString("9998", BLERead | BLENotify, MAX_BLOCK_SIZE, false);
-
 BLEByteCharacteristic inByteCharacteristic("9997", BLEWrite);
 
 // 0x2901 is CharacteristicUserDescription data type
@@ -74,23 +67,20 @@ void setup() {
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
-    // Setup the serial service
-    //outByteCharacteristic.addDescriptor(outputDescriptor);
-    //serialServiceIn.addCharacteristic(outByteCharacteristic);
+    setupSerialDescriptor(serialService, outputCharacteristic, outputDescriptor);
 
-    bleCharString.addDescriptor(outputDescriptor);
-    serialServiceIn.addCharacteristic(bleCharString);
-
+    // Setup the serial service - input
     inByteCharacteristic.addDescriptor(inputDescriptor);
-    serialServiceIn.addCharacteristic(inByteCharacteristic);
+    serialService.addCharacteristic(inByteCharacteristic);
     inByteCharacteristic.setEventHandler(BLEWritten, inBytesWritten);
-    BLE.addService(serialServiceIn);
-    BLE.setAdvertisedService(serialServiceIn);
-
-    // Start advertising
+    
+    // Add service to BLE and start advertising
+    BLE.addService(serialService);
+    BLE.setAdvertisedService(serialService);
     BLE.advertise();
     Serial.println("Bluetooth device active, waiting for connections...");
 }
+
 
 // the loop function runs over and over again until power down or reset
 void loop() {
@@ -104,6 +94,19 @@ void loop() {
         ResetInBuffer();
     }
 }
+
+
+// Initialize the serial Characteristic, add Descriptor and connect to serial
+void setupSerialDescriptor(BLEService& service, BLECharacteristic& characteristic, BLEDescriptor& desc) {
+    byte initBuffContents[MAX_BLOCK_SIZE];
+    // If we initialize with 0x00 (null) creates weird output in future writes
+    memset(initBuffContents, 0x20, MAX_BLOCK_SIZE);
+    characteristic.writeValue(initBuffContents, MAX_BLOCK_SIZE);
+    characteristic.addDescriptor(desc);
+    service.addCharacteristic(characteristic);
+}
+
+
 
 
 // TODO - sample code to process multi byte incoming data
@@ -161,13 +164,13 @@ void ProcessIncomingBuff() {
         int lastIndex = 0;
         for (int i = 0; i < count; i++) {
             lastIndex = i * MAX_BLOCK_SIZE;
-            bleCharString.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE);
+            outputCharacteristic.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE);
         }
         if (last > 0) {
             if (lastIndex > 0) {
                 lastIndex += MAX_BLOCK_SIZE;
             }
-            bleCharString.writeValue(&buff[lastIndex], last);
+            outputCharacteristic.writeValue(&buff[lastIndex], last);
         }
 
 
