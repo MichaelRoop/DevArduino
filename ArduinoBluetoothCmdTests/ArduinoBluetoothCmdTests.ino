@@ -35,6 +35,7 @@ void setup() {
      //Although we can set the default debug serial port higher 
      //9600 is adequate
     SetupCommunications(9600, 38400);
+    //SetupCommunications(9600, 115200);
 }
 
 
@@ -62,13 +63,19 @@ void SetupCommunications(long dbgBaud, long btBaud) {
  * Set the serial monitor to add LF and CRL to outgoing
  * The shield must already be switched via toggle to CMD mode. Cannot be done
  * programatically.  Here is the configuration info from AT commands
+ * https://www.itead.cc/wiki/BT_Shield_(Master_Slave)
  *
- * AT 			+NAME:itead
- * AT+VERSION 	+VERSION:hc01.comV2.1
- * AT+ADDR		+ADDR:2016:4:76101
- * AT+UART		+UART:9600,0,0
- * AT+ROLE		+ROLE:0 (1=master, 0=slave)
- * AT+PSWD		+PSWD:1234 (pairing PIN)
+ * AT 			    +NAME:itead
+ * AT+VERSION 	    +VERSION:hc01.comV2.1
+ * AT+ADDR		    +ADDR:2016:4:76101
+ * AT+UART		    +UART:9600,0,0
+ * AT+NAME=<param>  OK set the module name
+ * AT+NAME?         +NAME:<Param> Get the module name
+ * AT+ORGL          OK - restore to defaults
+ * AT+RESET         OK - reset
+ * 
+ * AT+ROLE		    +ROLE:0 (1=master, 0=slave)
+ * AT+PSWD		    +PSWD:1234 (pairing PIN)
  *
  * incoming responses from Bluetooth are ended with \r\n
 */
@@ -104,6 +111,10 @@ void SendReceiveBT_AT_Cmds() {
                 Serial.println("Corrupt BT input. Purge buffer");
             }
         }
+    }
+    else {
+        //char[1] = {'a'};
+       // btSerial.write("aa\r\n");
     }
 
     // This is the simple version which just pushes each character to debug serial

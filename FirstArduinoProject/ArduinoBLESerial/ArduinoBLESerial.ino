@@ -1,14 +1,12 @@
-/*
- Name:		ArduinoBLESerial.ino
- Created:	4/28/2020 8:55:58 PM
- Author:	Michael
 
- Sets up the BLE to simulate a serial connection by having one characteristic
- configured as an incoming channel, and another one as the outgoing
-
- Tested on the Arduino UNO WIFI Rev2
-
-*/
+// Name:		ArduinoBLESerial.ino
+// Created:	4/28/2020 8:55:58 PM
+// Author:	Michael
+//
+// Sets up the BLE to simulate a serial connection by having one characteristic
+// configured as an incoming channel, and another one as the outgoing
+//
+// Tested on the Arduino UNO WIFI Rev2
 #include <ArduinoBLE.h>
 #include <string.h>
 

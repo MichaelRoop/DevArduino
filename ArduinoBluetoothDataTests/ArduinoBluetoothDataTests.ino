@@ -1,28 +1,28 @@
-/*
- Name:		ArduinoBluetoothDataTests.ino
- Created:	12/12/2019 3:14:05 PM
- Author:	Michael
 
- Sample to send and receive date to and from Arduino Bluetooth shield via serial monitor
-
- Written and tested in Visual Studio using Visual Micro
- Tested against Arduino Uno and itea Bluetooth shield with HC-05 module
-
- MUST HAVE BOARD TOGGLED TO DATA
- MUST HAVE BOARD JUMPERS SET FOLLOWING for IO4 TX and IO5 RX
- °°°|°°
- °°|°°°
- °°°°°°
- MUST HAVE DEBUG SERIAL SET TO 9600 Baud
- MUST HAVE BT SERIAL SET TO 38400 Baud
-
- Use a Bluetooth terminal program to send data. For example, BT Serial Terminal 
- on Windows
-
- Must pair with Bluetooth first
-
- */
-
+// Name:		ArduinoBluetoothDataTests.ino
+// Created:	12/12/2019 3:14:05 PM
+// Author:	Michael
+//
+// Sample to send and receive date to and from Arduino Bluetooth shield via serial monitor
+//
+// Written and tested in Visual Studio using Visual Micro
+// Tested against Arduino Uno and itea Bluetooth shield with HC-05 module
+//
+// MUST HAVE BOARD TOGGLED TO DATA
+// MUST HAVE BOARD JUMPERS SET FOLLOWING for IO4 TX and IO5 RX
+//
+//      0    6
+//		°°°|°°  TX
+//		°°|°°°
+//		°°°°°°  RX
+//
+// MUST HAVE DEBUG SERIAL SET TO 9600 Baud
+// MUST HAVE BT SERIAL SET TO 38400 Baud
+//
+// Use a Bluetooth terminal program to send data. For example, BT Serial Terminal                                                                 
+// on Windows
+//
+// Must pair with Bluetooth first
 #include <SoftwareSerial.h>
 
 #ifndef SECTION_DATA
@@ -30,6 +30,8 @@ int i = 0;
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
+
+
 bool hasInput = false;
 #define IN_BUFF_SIZE 100
 char buff[IN_BUFF_SIZE];
@@ -46,12 +48,12 @@ void setup() {
 // the loop function runs over and over again until power down or reset
 void loop() {
 	ListenToBTData();
+	delay(10);
 }
 
 
 // Private helpers
 void SetupCommunications(long dbgBaud, long btBaud) {
-	btSerial.begin(btBaud);
 	Serial.begin(dbgBaud);
 
 	while (!Serial) {
@@ -59,6 +61,11 @@ void SetupCommunications(long dbgBaud, long btBaud) {
 	}
 	Serial.println("Debug serial active");
 	// example had pin 9 set low, then high but does not seem necessary
+
+	btSerial.begin(btBaud);
+	while (!btSerial) {
+	}
+	Serial.println("BT up and running");
 }
 
 
@@ -111,13 +118,13 @@ void ListenToBTData() {
 			//btSerial.write("Finished processing input\n");
 		}
 
-		if (i % 50 == 0) {
+		if (i % 500 == 0) {
 			Serial.print("No BT msg # ");
 			Serial.print((i / 10));
 			Serial.println("");
 		}
 		i++;
-		delay(100);
+		delay(10);
 	}
 
 		/*
