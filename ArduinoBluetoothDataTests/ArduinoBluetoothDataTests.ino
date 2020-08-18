@@ -42,6 +42,7 @@ unsigned char inIndex = 0;
 // the setup function runs once when you press reset or power the board
 void setup() {
 	// There is some strange behaviour when using different baud rates
+	// TODO - determine how to communicate in other baud rates for BT. Seems board may be fixed to 38400
 	SetupCommunications(9600, 38400);
 }
 
@@ -65,7 +66,7 @@ void SetupCommunications(long dbgBaud, long btBaud) {
 	btSerial.begin(btBaud);
 	while (!btSerial) {
 	}
-	Serial.println("BT up and running");
+	Serial.println("BT DATA Mode up and running");
 }
 
 
@@ -89,6 +90,7 @@ void ListenToBTData() {
 
 		// Doing \n\r
 		if (buff[inIndex] == '\r') {
+			Serial.println("");
 			Serial.println("Printing msg in buffer");
 			hasInput = true;
 			Serial.write(buff, inIndex + 1);
@@ -119,7 +121,7 @@ void ListenToBTData() {
 		}
 
 		if (i % 500 == 0) {
-			Serial.print("No BT msg # ");
+			Serial.print("No BT cmds# ");
 			Serial.print((i / 10));
 			Serial.println("");
 		}

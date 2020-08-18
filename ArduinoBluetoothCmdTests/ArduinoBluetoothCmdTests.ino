@@ -54,6 +54,28 @@ void SetupCommunications(long dbgBaud, long btBaud) {
     }
     Serial.println("Debug serial active");
     // example had pin 9 set low, then high but does not seem necessary
+
+    Serial.println("BT CMD Mode up and running");
+
+    btSerial.write("AT\r\n");
+    Serial.println(btSerial.readStringUntil('\n'));
+
+    btSerial.write("AT+NAME?\r\n");
+    Serial.println(btSerial.readStringUntil('\n'));
+
+    btSerial.write("AT+UART\r\n");
+    Serial.println(btSerial.readStringUntil('\n'));
+
+
+    //Serial.println(btSerial.write("AT+NAME?"));
+    //Serial.println(btSerial.write("AT+UART"));
+    //
+    //Serial.println(btSerial.read(""));
+    
+    //Serial.println(btSerial.write(""));
+    //Serial.println(btSerial.write(""));
+
+
 }
 
 // Private methods
