@@ -92,10 +92,14 @@ void loop() {
         // This will hold up the loop function as long as the connection persists
         while (central.connected()) {
             // The message processing is done via the event handler for incoming bytes
+            delayMicroseconds(100);
         }
         // Since the current connection has terminated wipe out accumulated in bytes
+        Serial.println("Connect terminated");
         ResetInBuffer();
     }
+
+
 }
 
 
@@ -392,5 +396,6 @@ void bleOnDisconnectHandler(BLEDevice central) {
     // central disconnected event handler
     Serial.print("DISCONNECTED, central: ");
     Serial.println(central.address());
+    ResetInBuffer();
 }
 
