@@ -45,10 +45,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WiFiNINA-1.4.0", "C:\Users\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLESerial", "ArduinoBLESerial\ArduinoBLESerial.vcxproj", "{1A2EF82F-6F49-4048-953F-3D2A272C2733}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoWifi", "ArduinoWifi\ArduinoWifi.vcxproj", "{2C988024-B820-44B8-BC1A-BE48CD4CA306}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
+		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{2c988024-b820-44b8-bc1a-be48cd4ca306}*SharedItemsImports = 4
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{8a7d6c54-5678-406b-8056-d6d03e67d0a3}*SharedItemsImports = 9
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{a3da9ea5-6c86-4208-b116-cc033a0e0821}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{af17d64d-12e9-4679-98bd-207f699b7d93}*SharedItemsImports = 4
@@ -250,6 +253,16 @@ Global
 		{1A2EF82F-6F49-4048-953F-3D2A272C2733}.Release|x64.ActiveCfg = Release|Win32
 		{1A2EF82F-6F49-4048-953F-3D2A272C2733}.Release|x86.ActiveCfg = Release|Win32
 		{1A2EF82F-6F49-4048-953F-3D2A272C2733}.Release|x86.Build.0 = Release|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Debug|ARM.ActiveCfg = Debug|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Debug|x64.ActiveCfg = Debug|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Debug|x86.ActiveCfg = Debug|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Debug|x86.Build.0 = Debug|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Release|ARM.ActiveCfg = Release|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Release|ARM64.ActiveCfg = Release|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Release|x64.ActiveCfg = Release|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Release|x86.ActiveCfg = Release|Win32
+		{2C988024-B820-44B8-BC1A-BE48CD4CA306}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
