@@ -111,7 +111,7 @@ void ListenForClient() {
 				char c = client.read();
 				Serial.write(c);
 				// This will bounce it back
-			//	client.print(c);
+				client.print(c);
 
 
 				//// This example is for HTTP. I Just want to get bytes
