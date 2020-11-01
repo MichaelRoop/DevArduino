@@ -3,6 +3,7 @@
  Created:	10/16/2020 1:22:40 PM
  Author:	Michael
 */
+#include <ArduinoBLE.h>
 #include <SPI.h>
 // the setup function runs once when you press reset or power the board
 #include <WiFiNINA.h>
