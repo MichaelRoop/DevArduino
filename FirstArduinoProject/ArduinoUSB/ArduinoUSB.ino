@@ -3,42 +3,136 @@
  Created:	11/1/2020 2:37:44 PM
  Author:	Michael
 */
-#define IN_BUFF_SIZE 100
-
+#define IN_BUFF_SIZE 255
+#define MSG_COMP_BUFF 25
 char inBuff[IN_BUFF_SIZE];
+char msgCmpBuff[IN_BUFF_SIZE];
+int msgSize = 0;
+unsigned char inIndex = 0;
+
+char OPEN_DOOR_CMD_REV[] = "OpenDoor";
+char CLOSE_DOOR_CMD_REV[] = "CloseDoor";
+char OPEN_DOOR_CMD[] = "OpenDoor";
+char CLOSE_DOOR_CMD[] = "CloseDoor";
+int  OPEN_CMD_LEN = 8;
+int CLOSE_CMD_LEN = 9;
+
+
+
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-	//Serial.begin(57600, SERIAL_8N1);
 	Serial.begin(115200, SERIAL_8N1);
-
 	while (!Serial) {
 	}
-	delay(500);
 	Serial.println("started");
-	//DoBlink(10);
+
+	// Reverse the compare strings so we can filter out leading garbage in inputs
+	strrev(OPEN_DOOR_CMD_REV);
+	strrev(CLOSE_DOOR_CMD_REV);
 }
 
 
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	int count = Serial.available();
-	if (count > 0) {
-		int c = (char)Serial.read();
-		Serial.write(c);
-		//DoBlink(1);
-	}
-
-
+	ListenForData();
 }
 
 
+void ListenForData() {
+	int available = Serial.available();
+	if (available > 0) {
+		msgSize = 0;
 
-void DoBlink(int count) {
-	for (int i = 0; i < count; i++) {
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(250);
-		digitalWrite(LED_BUILTIN, LOW);
+		// Error check to avoid overrun of buffer
+		if ((inIndex + available) > IN_BUFF_SIZE) {
+			Serial.write("ERROR-PURGING INPUT\r\n");
+			inIndex = 0;
+			return;
+		}
+
+		size_t count = Serial.readBytes(&inBuff[inIndex], available);
+		inIndex += count;
+
+		Serial.print("count:"); Serial.println(count);
+		for (int i = 0; i < inIndex; i++) {
+			// Make assumption that \n\r comming in so look for \r for end
+			if (i > 1) {
+				if (inBuff[i-1] == '\r' && inBuff[i] == '\n') {
+
+					Serial.println("Found CR LN");
+
+					msgSize = i - 1;
+					memset(msgCmpBuff, 0, MSG_COMP_BUFF);
+					//memcpy(inBuff, msgCmpBuff, msgSize);
+					memcpy(msgCmpBuff, inBuff, msgSize);
+
+					Serial.println(msgCmpBuff);
+
+					memmove(inBuff , &inBuff[i + 1] , (inIndex + count) - (msgSize + 2));
+					inIndex -= msgSize + 2;
+					memset(&inBuff[inIndex], 0, (IN_BUFF_SIZE - inIndex));
+					CompareForResponse(msgSize);
+				}
+			}
+		}
+	}
+	else {
+
 	}
 }
+
+
+void CompareForResponse(int msgSize) {
+	Serial.println(msgCmpBuff);
+
+
+	// Reverse the incoming buffer. This will eliminate garbage 
+	// at start of legit command OpenDoorjflkdsjffsldkfj\r\n
+	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
+		Serial.write("OPENING\r\n");
+	}
+	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
+		Serial.write("CLOSING\r\n");
+	}
+	else {
+		// Handle garbage between command and terminators
+		strrev(msgCmpBuff);
+		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
+			Serial.write("OPENING\r\n");
+		}
+		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
+			Serial.write("CLOSING\r\n");
+		}
+		else {
+			Serial.write("NOT_HANDLED\r\n");
+		}
+
+		//Serial.write("NOT_HANDLED\r\n");
+	}
+
+
+
+
+
+
+
+
+	//// Reverse the incoming buffer. This will eliminate garbage 
+	//// at start of legit command OpenDoorjflkdsjffsldkfj\r\n
+	//strrev(msgCmpBuff);
+	//if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
+	//	Serial.write("OPENING\r\n");
+	//}
+	//else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
+	//	Serial.write("CLOSING\r\n");
+	//}
+	//else {
+	//	// Handle garbage at sta
+
+
+	//	Serial.write("NOT_HANDLED\r\n");
+	//}
+}
+
