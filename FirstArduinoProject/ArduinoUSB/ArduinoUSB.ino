@@ -1,7 +1,15 @@
 /*
- Name:		ArduinoUSB.ino
- Created:	11/1/2020 2:37:44 PM
- Author:	Michael
+   Name:		ArduinoUSB.ino
+   Created:	11/1/2020 2:37:44 PM
+   Author:	Michael
+
+   Tested on an Arduino Uno using the default serial port
+   You can apply the same code to boards with multiple serial
+   ports by specifying the exact serial port
+
+   The terminal must be set to 
+   Baud 115,200, 8 Data bits, 1 Stop bit, no parity
+
 */
 #define IN_BUFF_SIZE 50
 #define MSG_COMP_BUFF 50
@@ -16,8 +24,6 @@ char OPEN_DOOR_CMD[] = "OpenDoor";
 char CLOSE_DOOR_CMD[] = "CloseDoor";
 int  OPEN_CMD_LEN = 8;
 int CLOSE_CMD_LEN = 9;
-
-
 
 
 // the setup function runs once when you press reset or power the board
@@ -71,33 +77,48 @@ void ListenForData() {
 			}
 		}
 	}
-	else {
-
-	}
 }
 
 
+/// <summary>Compare the incoming message to carry out IO actions</summary>
+/// <param name="msgSize">Size of the incoming message</param>
 void CompareForResponse(int msgSize) {
-	// Reverse the incoming buffer. This will eliminate garbage 
-	// at start of legit command OpenDoorjflkdsjffsldkfj\r\n
+
+	// Compare from start of buffer. Garbage at end of Command
+	// and before terminator is ignored (OpenDoorlsdlfkdjdflj)
 	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
 		Serial.write("OPENING\r\n");
+		OpenGarageDoor();
 	}
 	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
 		Serial.write("CLOSING\r\n");
+		CloseGarageDoor();
 	}
 	else {
-		// Handle garbage between command and terminators
+		// Reverse the incoming buffer. This will ignore garbage 
+		// at start of legit command (sdfsdfsOpenDoor)
 		strrev(msgCmpBuff);
 		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
 			Serial.write("OPENING\r\n");
+			OpenGarageDoor();
 		}
 		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
 			Serial.write("CLOSING\r\n");
+			CloseGarageDoor();
 		}
 		else {
 			Serial.write("NOT_HANDLED\r\n");
 		}
 	}
+}
+
+
+void OpenGarageDoor() {
+	// Do you IO stuff here to open the door
+}
+
+
+void CloseGarageDoor() {
+	// Do you IO stuff here to close the door
 }
 
