@@ -54,6 +54,7 @@ void ListenForData() {
 
 		// Error check to avoid overrun of buffer
 		if ((inIndex + available) > IN_BUFF_SIZE) {
+			Blink();
 			Serial.write("ERROR-PURGING INPUT\r\n");
 			inIndex = 0;
 			return;
@@ -87,11 +88,15 @@ void CompareForResponse(int msgSize) {
 	// Compare from start of buffer. Garbage at end of Command
 	// and before terminator is ignored (OpenDoorlsdlfkdjdflj)
 	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
+		Blink();
 		Serial.write("OPENING\r\n");
+		Serial.flush();
 		OpenGarageDoor();
 	}
 	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
+		Blink();
 		Serial.write("CLOSING\r\n");
+		Serial.flush();
 		CloseGarageDoor();
 	}
 	else {
@@ -100,14 +105,19 @@ void CompareForResponse(int msgSize) {
 		strrev(msgCmpBuff);
 		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
 			Serial.write("OPENING\r\n");
+			Serial.flush();
 			OpenGarageDoor();
 		}
 		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
-			Serial.write("CLOSING\r\n");
+			Blink();
+			Serial.write("CLOSING\r\n"); 
+			Serial.flush();
 			CloseGarageDoor();
 		}
 		else {
+			Blink();
 			Serial.write("NOT_HANDLED\r\n");
+			Serial.flush();
 		}
 	}
 }
@@ -121,4 +131,12 @@ void OpenGarageDoor() {
 void CloseGarageDoor() {
 	// Do you IO stuff here to close the door
 }
+
+// So user can tell device is sending back stuff
+void Blink() {
+	digitalWrite(LED_BUILTIN, HIGH);
+	delay(1);
+	digitalWrite(LED_BUILTIN, LOW);
+}
+
 
