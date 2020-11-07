@@ -115,36 +115,40 @@ void ListenForData() {
 		PrintOutIpAddress(client.remoteIP(), client.remotePort());
 		while (client.connected()) {
 			bytesAvailable = client.available();
-			Serial.print("Received "); Serial.print(bytesAvailable); Serial.println(" bytes");
-			msgSize = 0;
+			if (bytesAvailable > 0) {
+				Serial.print("Received "); Serial.print(bytesAvailable); Serial.println(" bytes");
+				msgSize = 0;
 
-			// Error check to avoid overrun of buffer
-			if ((inIndex + bytesAvailable) > IN_BUFF_SIZE) {
-				Blink();
-				Serial.println("Overrun buffer. Purging all");
-				SendTCPResponse(&client, "ERROR-PURGING INPUT\r\n");
-				inIndex = 0;
-				return;
-			}
+				// Error check to avoid overrun of buffer
+				if ((inIndex + bytesAvailable) > IN_BUFF_SIZE) {
+					Blink();
+					Serial.println("Overrun buffer. Purging all");
+					SendTCPResponse(&client, "ERROR-PURGING INPUT\r\n");
+					inIndex = 0;
+					//return;
+					continue;
+				}
 
-			size_t count = client.readBytes(&inBuff[inIndex], bytesAvailable);
-			inIndex += count;
+				size_t count = client.readBytes(&inBuff[inIndex], bytesAvailable);
+				inIndex += count;
 
-			for (int i = 0; i < inIndex; i++) {
-				// Make assumption that \n\r comming in so look for \r for end
-				if (i > 1) {
-					if (inBuff[i - 1] == '\r' && inBuff[i] == '\n') {
-						msgSize = i - 1;
-						memset(msgCmpBuff, 0, MSG_COMP_BUFF);
-						memcpy(msgCmpBuff, inBuff, msgSize);
-						memmove(inBuff, &inBuff[i + 1], (inIndex + count) - (msgSize + 2));
-						inIndex -= msgSize + 2;
-						memset(&inBuff[inIndex], 0, (IN_BUFF_SIZE - inIndex));
-						CompareForResponse(&client, msgSize);
+				for (int i = 0; i < inIndex; i++) {
+					// Make assumption that \n\r comming in so look for \r for end
+					if (i > 1) {
+						if (inBuff[i - 1] == '\r' && inBuff[i] == '\n') {
+							msgSize = i - 1;
+							memset(msgCmpBuff, 0, MSG_COMP_BUFF);
+							memcpy(msgCmpBuff, inBuff, msgSize);
+							memmove(inBuff, &inBuff[i + 1], (inIndex + count) - (msgSize + 2));
+							inIndex -= msgSize + 2;
+							memset(&inBuff[inIndex], 0, (IN_BUFF_SIZE - inIndex));
+							CompareForResponse(&client, msgSize);
+						}
 					}
 				}
 			}
 		}
+		Serial.println("Client Disconnected");
 	}
 }
 
@@ -164,6 +168,7 @@ void SendTCPResponse(EthernetClient* client,  char* msg) {
 	client->print("</body>");
 	client->println("</html>");
 #else
+	Serial.print(msg);
 	client->write(msg);
 	client->flush();
 #endif // DUMP_TO_BROWSER
