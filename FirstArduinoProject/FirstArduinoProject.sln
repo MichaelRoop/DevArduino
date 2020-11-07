@@ -51,6 +51,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLE-1.1.2", "C:\User
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoUSB", "ArduinoUSB\ArduinoUSB.vcxproj", "{76432CD9-AE76-4193-B808-208A9AD4220A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoEthernetUDP", "ArduinoEthernet\ArduinoEthernet.vcxproj", "{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoEthernetTCP", "ArduinoEthernetTCP\ArduinoEthernetTCP.vcxproj", "{0B3920E5-56EA-460B-B3A5-7AE435960CD6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
@@ -279,6 +283,26 @@ Global
 		{76432CD9-AE76-4193-B808-208A9AD4220A}.Release|x64.ActiveCfg = Release|Win32
 		{76432CD9-AE76-4193-B808-208A9AD4220A}.Release|x86.ActiveCfg = Release|Win32
 		{76432CD9-AE76-4193-B808-208A9AD4220A}.Release|x86.Build.0 = Release|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Debug|ARM.ActiveCfg = Debug|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Debug|x64.ActiveCfg = Debug|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Debug|x86.ActiveCfg = Debug|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Debug|x86.Build.0 = Debug|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Release|ARM.ActiveCfg = Release|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Release|ARM64.ActiveCfg = Release|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Release|x64.ActiveCfg = Release|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Release|x86.ActiveCfg = Release|Win32
+		{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}.Release|x86.Build.0 = Release|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Debug|ARM.ActiveCfg = Debug|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Debug|x64.ActiveCfg = Debug|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Debug|x86.ActiveCfg = Debug|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Debug|x86.Build.0 = Debug|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|ARM.ActiveCfg = Release|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|ARM64.ActiveCfg = Release|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x64.ActiveCfg = Release|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x86.ActiveCfg = Release|Win32
+		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
