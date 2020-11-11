@@ -55,6 +55,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoEthernetUDP", "Ardui
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoEthernetTCP", "ArduinoEthernetTCP\ArduinoEthernetTCP.vcxproj", "{0B3920E5-56EA-460B-B3A5-7AE435960CD6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoSerial_BT_AT_Cmds", "ArduinoSerial_BT_AT_Cmds\ArduinoSerial_BT_AT_Cmds.vcxproj", "{1BFD4F06-594B-4D58-9DF8-3E78647814B6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
@@ -303,6 +305,16 @@ Global
 		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x64.ActiveCfg = Release|Win32
 		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x86.ActiveCfg = Release|Win32
 		{0B3920E5-56EA-460B-B3A5-7AE435960CD6}.Release|x86.Build.0 = Release|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Debug|ARM.ActiveCfg = Debug|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Debug|x64.ActiveCfg = Debug|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Debug|x86.ActiveCfg = Debug|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Debug|x86.Build.0 = Debug|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Release|ARM.ActiveCfg = Release|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Release|ARM64.ActiveCfg = Release|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Release|x64.ActiveCfg = Release|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Release|x86.ActiveCfg = Release|Win32
+		{1BFD4F06-594B-4D58-9DF8-3E78647814B6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
