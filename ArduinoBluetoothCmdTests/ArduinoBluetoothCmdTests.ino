@@ -15,6 +15,21 @@
  °°°°°°
  MUST HAVE DEBUG SERIAL SET TO 9600 Baud
  MUST HAVE BT SERIAL SET TO 38400 Baud
+
+  * AT 			    +NAME:itead
+ * AT+VERSION 	    +VERSION:hc01.comV2.1
+ * AT+ADDR		    +ADDR:2016:4:76101
+ * AT+UART		    +UART:9600,0,0
+ * AT+NAME=<param>  OK set the module name
+ * AT+NAME?         +NAME:<Param> Get the module name
+ * AT+ORGL          OK - restore to defaults
+ * AT+RESET         OK - reset
+ *
+ * AT+ROLE		    +ROLE:0 (1=master, 0=slave)
+ * AT+PSWD		    +PSWD:1234 (pairing PIN)
+
+
+
 */
 #include <SoftwareSerial.h>
 
