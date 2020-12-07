@@ -94,7 +94,7 @@ void ListenForData() {
 
 			// Make assumption that \n\r comming in so look for \r for end
 			if (i > 1) {
-				if (inBuff[i - 1] == '\r' && inBuff[i] == '\n') {
+				if (inBuff[i - 1] == '\n' && inBuff[i] == '\r') {
 					msgSize = i - 1;
 					memset(msgCmpBuff, 0, MSG_COMP_BUFF);
 					memcpy(msgCmpBuff, inBuff, msgSize);
@@ -120,16 +120,16 @@ void CompareForResponse(int msgSize) {
 	// and before terminator is ignored (OpenDoorlsdlfkdjdflj)
 	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
 		Blink();
-		btSerial.write("OPENING\r\n");
+		btSerial.write("OPENING\n\r");
 		btSerial.flush();
-		Serial.write("OPENING\r\n");
+		Serial.write("OPENING\n\r");
 		OpenGarageDoor();
 	}
 	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
 		Blink();
-		btSerial.write("CLOSING\r\n");
+		btSerial.write("CLOSING\n\r");
 		btSerial.flush();
-		Serial.write("CLOSING\r\n");
+		Serial.write("CLOSING\n\r");
 		CloseGarageDoor();
 	}
 	else {
@@ -137,23 +137,23 @@ void CompareForResponse(int msgSize) {
 		// at start of legit command (sdfsdfsOpenDoor)
 		strrev(msgCmpBuff);
 		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
-			btSerial.write("OPENING\r\n");
+			btSerial.write("OPENING\n\r");
 			btSerial.flush();
-			Serial.write("OPENING\r\n");
+			Serial.write("OPENING\n\r");
 			OpenGarageDoor();
 		}
 		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
 			Blink();
-			btSerial.write("CLOSING\r\n");
+			btSerial.write("CLOSING\n\r");
 			btSerial.flush();
-			Serial.write("CLOSING\r\n");
+			Serial.write("CLOSING\n\r");
 			CloseGarageDoor();
 		}
 		else {
 			Blink();
-			btSerial.write("NOT_HANDLED\r\n");
+			btSerial.write("NOT_HANDLED\n\r");
 			btSerial.flush();
-			Serial.write("NOT_HANDLED\r\n");
+			Serial.write("NOT_HANDLED\n\r");
 		}
 	}
 }
