@@ -71,7 +71,7 @@ void setup() {
 		while (true) { }
 	}
 
-	delay(10000);
+	delay(1000);
 
 
 	server.begin();
@@ -86,16 +86,58 @@ void loop() {
 
 	if (status != WiFi.status()) {
 		status = WiFi.status();
-		if (status == WL_AP_CONNECTED) {
+
+		switch (status) {
+		case WL_AP_CONNECTED:
 			Serial.println("Device connected to AP");
-		}
-		else {
-			// a device has disconnected from the AP, and we are back in listening mode
+			//server.begin();
+			break;
+		case WL_AP_LISTENING:
 			Serial.println("Device disconnected from AP");
+			//KillWifiClient();
+			break;
+		case WL_CONNECTION_LOST:
+			Serial.println("Device connection lost");
+			//KillWifiClient();
+			break;
+		default:
+			Serial.print("Other WIFI status:");
+			Serial.println(status);
+			break;
 		}
+
+		//if (status == WL_AP_CONNECTED) {
+		//	Serial.println("Device connected to AP");
+		//	//server.begin();
+		//}
+		//else if (status == WL_CONNECTION_LOST) {
+		//	Serial.println("Device disconnected from AP");
+		//	//WiFiClient client = server.available();
+		//	//if (client) {
+		//	//	client.stop();
+		//	//}
+		//}
+		//else {
+		//	// a device has disconnected from the AP, and we are back in listening mode
+		//	Serial.print("Other WIFI status:");
+		//	Serial.println(status);
+		//}
 	}
-	ListenForClient();
+
+	if (status == WL_AP_CONNECTED) {
+		ListenForClient();
+	}
 }
+
+
+void KillWifiClient() {
+	WiFiClient client = server.available();
+	if (client) {
+		client.stop();
+	}
+}
+ 
+
 
 
 void ListenForClient() {
@@ -161,6 +203,7 @@ void ListenForClient() {
 
 void printWifiStatus() {
 	// print the SSID of the network you're attached to:
+	Serial.println("WIFI Info");
 	Serial.print("SSID: ");
 	Serial.println(WiFi.SSID());
 
