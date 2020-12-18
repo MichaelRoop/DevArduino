@@ -33,10 +33,6 @@ void setup() {
 	Serial.begin(115200, SERIAL_8N1);
 	while (!Serial) {
 	}
-
-	// Reverse the compare strings so we can filter out leading garbage in inputs
-	strrev(OPEN_DOOR_CMD_REV);
-	strrev(CLOSE_DOOR_CMD_REV);
 }
 
 
@@ -55,7 +51,7 @@ void ListenForData() {
 		// Error check to avoid overrun of buffer
 		if ((inIndex + available) > IN_BUFF_SIZE) {
 			Blink();
-			Serial.write("ERROR-PURGING INPUT\r\n");
+			Serial.write("ERROR-PURGING INPUT\n\r");
 			inIndex = 0;
 			return;
 		}
@@ -66,7 +62,7 @@ void ListenForData() {
 		for (int i = 0; i < inIndex; i++) {
 			// Make assumption that \n\r comming in so look for \r for end
 			if (i > 1) {
-				if (inBuff[i-1] == '\r' && inBuff[i] == '\n') {
+				if (inBuff[i-1] == '\n' && inBuff[i] == '\r') {
 					msgSize = i - 1;
 					memset(msgCmpBuff, 0, MSG_COMP_BUFF);
 					memcpy(msgCmpBuff, inBuff, msgSize);
@@ -89,36 +85,20 @@ void CompareForResponse(int msgSize) {
 	// and before terminator is ignored (OpenDoorlsdlfkdjdflj)
 	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
 		Blink();
-		Serial.write("OPENING\r\n");
+		Serial.write("OPENING\n\r");
 		Serial.flush();
 		OpenGarageDoor();
 	}
 	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
 		Blink();
-		Serial.write("CLOSING\r\n");
+		Serial.write("CLOSING\n\r");
 		Serial.flush();
 		CloseGarageDoor();
 	}
 	else {
-		// Reverse the incoming buffer. This will ignore garbage 
-		// at start of legit command (sdfsdfsOpenDoor)
-		strrev(msgCmpBuff);
-		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
-			Serial.write("OPENING\r\n");
-			Serial.flush();
-			OpenGarageDoor();
-		}
-		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
-			Blink();
-			Serial.write("CLOSING\r\n"); 
-			Serial.flush();
-			CloseGarageDoor();
-		}
-		else {
-			Blink();
-			Serial.write("NOT_HANDLED\r\n");
-			Serial.flush();
-		}
+		Blink();
+		Serial.write("NOT_HANDLED\n\r");
+		Serial.flush();
 	}
 }
 

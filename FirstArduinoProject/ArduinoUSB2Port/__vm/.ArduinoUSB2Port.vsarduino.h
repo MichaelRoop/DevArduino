@@ -237,6 +237,6 @@ __attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMa
 }
 
 
-#include "ArduinoUSB.ino"
+#include "ArduinoUSB2Port.ino"
 #endif
 #endif
