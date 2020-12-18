@@ -123,7 +123,7 @@ void ListenForData() {
 				if ((inIndex + bytesAvailable) > IN_BUFF_SIZE) {
 					Blink();
 					Serial.println("Overrun buffer. Purging all");
-					SendTCPResponse(&client, "ERROR-PURGING INPUT\r\n");
+					SendTCPResponse(&client, "ERROR-PURGING INPUT\n\r");
 					inIndex = 0;
 					//return;
 					continue;
@@ -135,7 +135,7 @@ void ListenForData() {
 				for (int i = 0; i < inIndex; i++) {
 					// Make assumption that \n\r comming in so look for \r for end
 					if (i > 1) {
-						if (inBuff[i - 1] == '\r' && inBuff[i] == '\n') {
+						if (inBuff[i - 1] == '\n' && inBuff[i] == '\r') {
 							msgSize = i - 1;
 							memset(msgCmpBuff, 0, MSG_COMP_BUFF);
 							memcpy(msgCmpBuff, inBuff, msgSize);
@@ -186,12 +186,12 @@ void CompareForResponse(EthernetClient* client, int msgSize) {
 	// and before terminator is ignored (OpenDoorlsdlfkdjdflj)
 	if (strncmp(msgCmpBuff, OPEN_DOOR_CMD, OPEN_CMD_LEN) == 0) {
 		Blink();
-		SendTCPResponse(client, "OPENING\r\n");
+		SendTCPResponse(client, "OPENING\n\r");
 		OpenGarageDoor();
 	}
 	else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD, CLOSE_CMD_LEN) == 0) {
 		Blink();
-		SendTCPResponse(client, "CLOSING\r\n");
+		SendTCPResponse(client, "CLOSING\n\r");
 		CloseGarageDoor();
 	}
 	else {
@@ -199,17 +199,17 @@ void CompareForResponse(EthernetClient* client, int msgSize) {
 		// at start of legit command (sdfsdfsOpenDoor)
 		strrev(msgCmpBuff);
 		if (strncmp(msgCmpBuff, OPEN_DOOR_CMD_REV, OPEN_CMD_LEN) == 0) {
-			SendTCPResponse(client, "OPENING\r\n");
+			SendTCPResponse(client, "OPENING\n\r");
 			OpenGarageDoor();
 		}
 		else if (strncmp(msgCmpBuff, CLOSE_DOOR_CMD_REV, CLOSE_CMD_LEN) == 0) {
 			Blink();
-			SendTCPResponse(client, "CLOSING\r\n");
+			SendTCPResponse(client, "CLOSING\n\r");
 			CloseGarageDoor();
 		}
 		else {
 			Blink();
-			SendTCPResponse(client, "NOT_HANDLED\r\n");
+			SendTCPResponse(client, "NOT_HANDLED\n\r");
 		}
 	}
 }
