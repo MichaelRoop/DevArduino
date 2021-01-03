@@ -9,3 +9,4 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 **/AutoPCH/**
 **/AutoPCH/*/*.*
 /FirstArduinoProject/.vs/FirstArduinoProject/v16/*
+/FirstArduinoProject/ArduinoBLESerial/Release/*

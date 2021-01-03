@@ -21,14 +21,18 @@ https://github.com/arduino-libraries/ArduinoBLE/blob/master/examples/Peripheral/
 
 
 
-#include <ArduinoBLE.h>
+//#include <ArduinoBLE.h>
 
+#include <ArduinoBLE.h>
+//#include <Adafruit_Circuit_Playground.h>
+//#include <Adafruit_CircuitPlayground.h>
 
 #ifndef SECTION_DATA
 
 #define MAX_BLOCK_SIZE 20
 
 // Services
+
 BLEService dataService("18EF");
 
 // Characteristics

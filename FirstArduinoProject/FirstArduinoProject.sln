@@ -47,8 +47,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLESerial", "Arduino
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoWifi", "ArduinoWifi\ArduinoWifi.vcxproj", "{2C988024-B820-44B8-BC1A-BE48CD4CA306}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLE-1.1.2", "C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE\ArduinoBLE-1.1.2.vcxitems", "{B37910CA-F05D-4CCD-8CBA-3C179A9164DC}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoUSB", "ArduinoUSB\ArduinoUSB.vcxproj", "{76432CD9-AE76-4193-B808-208A9AD4220A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoEthernetUDP", "ArduinoEthernet\ArduinoEthernet.vcxproj", "{1D178E62-E1B1-466E-AB57-3BAEC6FD874E}"
@@ -61,18 +59,23 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLEPeripheral", "Ard
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoUSB2Port", "ArduinoUSB2Port\ArduinoUSB2Port.vcxproj", "{33DD6BDD-B1CD-4441-AB38-08FC4AA966D0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoBLE-pairing-1.1.3", "C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE-pairing\ArduinoBLE-pairing-1.1.3.vcxitems", "{ECA7FD37-9940-4F1C-B49F-9E868B4AA758}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Arduino_LSM6DS3-1.0.0", "C:\Users\Michael\Documents\Arduino\libraries\Arduino_LSM6DS3\Arduino_LSM6DS3-1.0.0.vcxitems", "{5162F131-ADAF-4F9A-BC00-9F5F2A23D73E}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
+		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE-pairing\ArduinoBLE-pairing-1.1.3.vcxitems*{1a2ef82f-6f49-4048-953f-3d2a272c2733}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
-		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE\ArduinoBLE-1.1.2.vcxitems*{2c988024-b820-44b8-bc1a-be48cd4ca306}*SharedItemsImports = 4
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{2c988024-b820-44b8-bc1a-be48cd4ca306}*SharedItemsImports = 4
+		C:\Users\Michael\Documents\Arduino\libraries\Arduino_LSM6DS3\Arduino_LSM6DS3-1.0.0.vcxitems*{5162f131-adaf-4f9a-bc00-9f5f2a23d73e}*SharedItemsImports = 9
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{8a7d6c54-5678-406b-8056-d6d03e67d0a3}*SharedItemsImports = 9
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{a3da9ea5-6c86-4208-b116-cc033a0e0821}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{af17d64d-12e9-4679-98bd-207f699b7d93}*SharedItemsImports = 4
-		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE\ArduinoBLE-1.1.2.vcxitems*{b37910ca-f05d-4ccd-8cba-3c179a9164dc}*SharedItemsImports = 9
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{bbd43745-d3b6-431f-906a-a8ee4ae4bac1}*SharedItemsImports = 4
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{d3cc7390-a4fa-41ac-a322-a3110d1d293c}*SharedItemsImports = 4
+		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE-pairing\ArduinoBLE-pairing-1.1.3.vcxitems*{eca7fd37-9940-4f1c-b49f-9e868b4aa758}*SharedItemsImports = 9
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
