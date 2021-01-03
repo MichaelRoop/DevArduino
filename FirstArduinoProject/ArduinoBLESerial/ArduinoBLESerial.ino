@@ -8,7 +8,8 @@
 //
 // Tested on the Arduino UNO WIFI Rev2
 #include <ArduinoBLE.h>
-#include <string.h>
+//#include <string.h>
+#include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
 
 #ifndef SECTION_DATA
 
@@ -171,13 +172,13 @@ void ProcessIncomingBuff() {
         int lastIndex = 0;
         for (int i = 0; i < count; i++) {
             lastIndex = i * MAX_BLOCK_SIZE;
-            outputCharacteristic.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE);
+            outputCharacteristic.writeValue(&buff[lastIndex], MAX_BLOCK_SIZE, false);
         }
         if (last > 0) {
             if (lastIndex > 0) {
                 lastIndex += MAX_BLOCK_SIZE;
             }
-            outputCharacteristic.writeValue(&buff[lastIndex], last);
+            outputCharacteristic.writeValue(&buff[lastIndex], last, false);
         }
 
 
