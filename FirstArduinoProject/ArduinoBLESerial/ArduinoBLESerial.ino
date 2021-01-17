@@ -8,30 +8,30 @@
 //
 // Tested on the Arduino UNO WIFI Rev2
 #include <ArduinoBLE.h>
-//#include <string.h>
 #include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
 
 #ifndef SECTION_DATA
 
-#define MAX_BLOCK_SIZE 20
-
+const int MAX_BLOCK_SIZE = 20;
+// BT spec 0x2A3D
+const char* CHARACTERISTIC_STR_TYPE = "2A3D";
+// BT spec 0x2901
+const char* DESCCRIPTOR_CHARACTERISTIC_USER_DESCRIPTION = "2901";
+// Custom Service Uuid 0x9999
+const char* SERVICE_CUSTOME_UUID = "9999";
+// BT spec 1792 Generic access
+const int GENERIC_ACCESS_APPEARANCE = 1792;
 
 // Create services that will act as a serial port. Max 20 bytes at a time
-BLEService serialService("9999");
+BLEService serialService(SERVICE_CUSTOME_UUID);
 
-// Out channel 0x99,0x98 = 39,320 base 10. Caller reads or gets notifications from this device
 // Need a write in Setup with block of MAX_BLOCK_SIZE size OR it is not recognized by caller
-BLECharacteristic outputCharacteristic("9998", BLERead | BLENotify, MAX_BLOCK_SIZE);
+BLECharacteristic outputCharacteristic(CHARACTERISTIC_STR_TYPE, BLERead | BLENotify, MAX_BLOCK_SIZE);
+BLEDescriptor outputDescriptor(DESCCRIPTOR_CHARACTERISTIC_USER_DESCRIPTION, "Serial Output");
 
-// In channel 0x99,0x97 = 39,319 base 10. Caller writes to this device 
-//BLEByteCharacteristic inputCharacteristic("9997", BLEWrite);
-BLECharacteristic inputCharacteristic("9997", BLEWrite, MAX_BLOCK_SIZE);
-
-
-
-// 0x2901 is CharacteristicUserDescription data type
-BLEDescriptor outputDescriptor("2901", "Serial Output");
-BLEDescriptor inputDescriptor("2901", "Serial Input");
+// Input characteristic
+BLECharacteristic inputCharacteristic(CHARACTERISTIC_STR_TYPE, BLEWrite, MAX_BLOCK_SIZE);
+BLEDescriptor inputDescriptor(DESCCRIPTOR_CHARACTERISTIC_USER_DESCRIPTION, "Serial Input");
 
 
 bool hasInput = false;
@@ -55,20 +55,18 @@ void setup() {
         Serial.println("Failed to start BLE");
         while (1);
     }
-    else {
-        Serial.println("BLE begun");
-    }
-
     
     // Name that users see in list for 'Add Device'
-    BLE.setLocalName("Mikies Arduino serial device");
-    // The Device Name Characteristic
-    BLE.setDeviceName("Mikies serial device");
+    BLE.setLocalName("Mikie BLE Serial");
+    // The GenericAccess Characteristic - Device Name Descriptor
+    BLE.setDeviceName("MR SerialBLE Device");
+    BLE.setAppearance(GENERIC_ACCESS_APPEARANCE);
 
     // assign event handlers for connected, disconnected events
     BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
     BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
+    // TODO - this writes to is which is not good I think
     setupSerialDescriptor(serialService, outputCharacteristic, outputDescriptor);
 
     // Setup the serial service - input
@@ -82,7 +80,7 @@ void setup() {
     BLE.addService(serialService);
     BLE.setAdvertisedService(serialService);
     BLE.advertise();
-    Serial.println("Bluetooth device active, waiting for connections...");
+    Serial.println("BLE awaiting connections...");
 }
 
 
@@ -211,7 +209,7 @@ void ProcessIncomingBuff() {
         // Wipe out buffer if too long
         if (inIndex >= IN_BUFF_SIZE) {
             ResetInBuffer();
-            Serial.println("Corrupt BT input. Buffer purged");
+            Serial.println("Corrupt input purged");
         }
     }
 }
@@ -382,21 +380,15 @@ void ProcessIncomingBuff2(uint8_t* inData, int length) {
 }
 
 
-
-
-
-
 void bleOnConnectHandler(BLEDevice central) {
     // central connected event handler
-    Serial.print("CONNECTED, central: ");
-    Serial.println(central.address());
+    Serial.println("CONNECTED");
 }
 
 
 void bleOnDisconnectHandler(BLEDevice central) {
     // central disconnected event handler
-    Serial.print("DISCONNECTED, central: ");
-    Serial.println(central.address());
+    Serial.println("DISCONNECTED");
     ResetInBuffer();
 }
 
