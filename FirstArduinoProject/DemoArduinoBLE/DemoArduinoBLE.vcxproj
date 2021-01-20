@@ -115,7 +115,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties config.Release.customdebug_uno2018_debugger_type="universal" debug.local.portspeed="9600" debug.remote.portspeed="9600" />
+      <UserProperties arduino.upload.port="COM4" config.Release.customdebug_uno2018_debugger_type="universal" debug.local.portspeed="9600" debug.remote.portspeed="9600" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
