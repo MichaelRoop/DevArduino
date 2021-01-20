@@ -20,18 +20,14 @@
 
 const char* SERVICE_BATTERY_ID = "180F"; // 0x180F
 const char* CHAR_BATTERY_LEVEL_ID = "2A19";
-//const int BATTERY_LEVEL_SIZE = 2;
 const int GENERIC_ACCESS_APPEARANCE_ID = 1792; // BLE Spec 0x1792
-
 
 // Create battery service
 BLEService batteryService(SERVICE_BATTERY_ID);
-//BLECharacteristic batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify, BATTERY_LEVEL_SIZE, true);
-
 BLEUnsignedCharCharacteristic batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify);
 
 // Track between 0-64 Hex 0-100%
-uint8_t batteryLevel = 30;
+unsigned char batteryLevel = 30;
 
 unsigned long lasMsTime = 0;
 bool upIncrement = true;
@@ -41,16 +37,9 @@ bool upIncrement = true;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-//	SetupDbg(115200);
-
 	Serial.begin(9600);
 	while (!Serial) {}
-	//DbgLine("started...");
 	Serial.println("started...");
-
-
-
-
 	SetupBLE();
 }
 
@@ -60,6 +49,7 @@ void loop() {
 	if (central) {
 		while (central.connected()) {
 			WriteBatteryLevelOnMsInterval(1000);
+			delayMicroseconds(10);
 		}
 	}
 }
@@ -114,8 +104,9 @@ void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
 			}
 		}
 		Serial.print("Level:"); Serial.println(batteryLevel);
-		batteryLevelChar.writeValue(batteryLevel);
-		batteryLevelChar.valueUpdated();
+		if (batteryLevelChar.writeValue(batteryLevel) == 0) {
+			Serial.println("Write fail");
+		}
 	}
 }
 

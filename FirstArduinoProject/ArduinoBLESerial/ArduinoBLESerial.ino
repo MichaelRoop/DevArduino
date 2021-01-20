@@ -14,7 +14,7 @@
 
 const int MAX_BLOCK_SIZE = 20;
 // BT spec 0x2A3D
-const char* CHARACTERISTIC_STR_TYPE = "2A3D";
+const char* CHARACTERISTIC_STR_TYPE = "2a3d";
 // BT spec 0x2901
 const char* DESCCRIPTOR_CHARACTERISTIC_USER_DESCRIPTION = "2901";
 // Custom Service Uuid 0x9999
