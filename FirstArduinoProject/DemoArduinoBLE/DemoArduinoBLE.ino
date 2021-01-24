@@ -119,7 +119,7 @@ void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
 		if (upIncrement) {
 			tempLevel += 111;
 			humidityLevl += 212;
-			pressureLevel += 88;
+			pressureLevel += 18;
 			batteryLevel++;
 			if (batteryLevel > 99) {
 				batteryLevel = 99;
@@ -130,7 +130,7 @@ void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
 		else {
 			tempLevel -= 111;
 			humidityLevl -= 212;
-			pressureLevel -= 88;
+			pressureLevel -= 18;
 			batteryLevel--;
 			if (batteryLevel < 60) {
 				upIncrement = true;
