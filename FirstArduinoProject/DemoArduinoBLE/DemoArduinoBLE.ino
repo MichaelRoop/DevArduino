@@ -33,23 +33,18 @@ const int GENERIC_ACCESS_APPEARANCE_ID = 1792; // BLE Spec 0x1792
 
 // Create battery service
 BLEService batteryService(SERVICE_BATTERY_ID);
-BLEUnsignedCharCharacteristic batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify);
+BLETypedCharacteristic<uint8_t> batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify);
 
 BLEService environmentService("181A");
-
-// Changed this from an unsigned int to unsigned long
-// BLE spec requires 32 bits but the unsigned int only sends up 16 bits
-BLEUnsignedLongCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify);
-BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify);
-BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify);
-
+BLETypedCharacteristic<uint32_t> pressureCharacteristic("2A6D", BLERead | BLENotify);
+BLETypedCharacteristic<int16_t> tempCharacteristic("2A6E", BLERead | BLENotify);
+BLETypedCharacteristic<uint16_t> humidCharacteristic("2A6F", BLERead | BLENotify);
 
 // Track between 0-100
-unsigned char batteryLevel = 30;
-
-short tempLevel = 3392;
-unsigned short humidityLevl = 4400;
-unsigned long pressureLevel = 285;
+uint8_t batteryLevel = 93;
+int16_t tempLevel = 3392;
+uint16_t humidityLevl = 4400;
+uint32_t pressureLevel = 285;
 
 unsigned long lasMsTimeBattery = 0;
 bool upIncrement = true;
@@ -86,7 +81,8 @@ void SetupBLE() {
 		Serial.println("FAIL");
 		while (1);
 	}
-	
+
+
 	BLE.setLocalName("Mikie BLE"); // visible in search
 	BLE.setDeviceName("MR BLE Device");
 	BLE.setAppearance(GENERIC_ACCESS_APPEARANCE_ID);
@@ -106,6 +102,9 @@ void SetupBLE() {
 	BLE.advertise();
 
 	batteryLevelChar.writeValue(batteryLevel);
+	tempCharacteristic.writeValue(tempLevel);
+	pressureCharacteristic.writeValue(pressureLevel);
+	humidCharacteristic.writeValue(humidityLevl);
 	Serial.println("BLE started");
 
 }
