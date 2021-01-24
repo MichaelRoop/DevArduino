@@ -4,12 +4,21 @@
 
   Sets up the BLE to have characteristics that change values 
   in real time.
-  First is a Battery Level (bogus)
-
+	Battery Level
+	Temperature
+	Humidity
+	Pressure
   For this to work you need the forked version of ArduinoBLE
   which supports connection to Windows and Android
+  https://github.com/unknownconstant/ArduinoBLE/tree/pairing
+
 
   Tested on Arduino Uno WIFI Rev 2
+
+  Arduino code based on:
+  https://programmaticponderings.com/2020/08/04/getting-started-with-bluetooth-low-energy-ble-and-generic-attribute-profile-gatt-specification-for-iot/
+
+  With some modifications. Values are generated internally as a demo
   
  */
 #include <ArduinoBLE.h>
@@ -26,10 +35,23 @@ const int GENERIC_ACCESS_APPEARANCE_ID = 1792; // BLE Spec 0x1792
 BLEService batteryService(SERVICE_BATTERY_ID);
 BLEUnsignedCharCharacteristic batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify);
 
-// Track between 0-64 Hex 0-100%
+BLEService environmentService("181A");
+
+// Changed this from an unsigned int to unsigned long
+// BLE spec requires 32 bits but the unsigned int only sends up 16 bits
+BLEUnsignedLongCharacteristic pressureCharacteristic("2A6D", BLERead | BLENotify);
+BLEIntCharacteristic tempCharacteristic("2A6E", BLERead | BLENotify);
+BLEUnsignedIntCharacteristic humidCharacteristic("2A6F", BLERead | BLENotify);
+
+
+// Track between 0-100
 unsigned char batteryLevel = 30;
 
-unsigned long lasMsTime = 0;
+short tempLevel = 3392;
+unsigned short humidityLevl = 4400;
+unsigned long pressureLevel = 285;
+
+unsigned long lasMsTimeBattery = 0;
 bool upIncrement = true;
 
 #endif // !SECTION_MEMBERS
@@ -48,7 +70,7 @@ void loop() {
 	BLEDevice central = BLE.central();
 	if (central) {
 		while (central.connected()) {
-			WriteBatteryLevelOnMsInterval(1000);
+			WriteBatteryLevelOnMsInterval(5000);
 			delayMicroseconds(10);
 		}
 	}
@@ -74,6 +96,13 @@ void SetupBLE() {
 	batteryService.addCharacteristic(batteryLevelChar);
 	BLE.addService(batteryService);
 	BLE.setAdvertisedService(batteryService);
+
+	environmentService.addCharacteristic(tempCharacteristic);
+	environmentService.addCharacteristic(humidCharacteristic);
+	environmentService.addCharacteristic(pressureCharacteristic);
+	BLE.addService(environmentService);
+	BLE.setAdvertisedService(environmentService);
+
 	BLE.advertise();
 
 	batteryLevelChar.writeValue(batteryLevel);
@@ -86,27 +115,37 @@ void SetupBLE() {
 
 void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
 	unsigned long currentMs = millis();
-	if ((currentMs - lasMsTime) > msInterval) {
-		lasMsTime = currentMs;
+	if ((currentMs - lasMsTimeBattery) > msInterval) {
+		lasMsTimeBattery = currentMs;
 		if (upIncrement) {
+			tempLevel += 111;
+			humidityLevl += 212;
+			pressureLevel += 88;
 			batteryLevel++;
-			if (batteryLevel > 63) {
-				batteryLevel = 62;
+			if (batteryLevel > 99) {
+				batteryLevel = 99;
 				upIncrement = false;
 				batteryLevel--;
 			}
 		}
 		else {
+			tempLevel -= 111;
+			humidityLevl -= 212;
+			pressureLevel -= 88;
 			batteryLevel--;
-			if (batteryLevel < 30) {
+			if (batteryLevel < 60) {
 				upIncrement = true;
-				batteryLevel = 31;
+				batteryLevel = 60;
 			}
 		}
 		Serial.print("Level:"); Serial.println(batteryLevel);
 		if (batteryLevelChar.writeValue(batteryLevel) == 0) {
 			Serial.println("Write fail");
 		}
+
+		tempCharacteristic.writeValue(tempLevel);
+		humidCharacteristic.writeValue(humidityLevl);
+		pressureCharacteristic.writeValue(pressureLevel);
 	}
 }
 
