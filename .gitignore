@@ -11,3 +11,4 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 /FirstArduinoProject/.vs/FirstArduinoProject/v16/*
 /FirstArduinoProject/ArduinoBLESerial/Release/*
 /FirstArduinoProject/DemoArduinoBLE/Release/*
+/FirstArduinoProject/ArduinoEthernetTCP/Release/*

@@ -2,12 +2,15 @@
   Name:    DemoArduinoBLE.ino
   Created: Jan 15, 2021
 
-  Sets up the BLE to have characteristics that change values 
-  in real time.
-	Battery Level
-	Temperature
-	Humidity
-	Pressure
+  Sets up the BLE to have characteristics that change value in real time.
+	Battery Level	// 0x180F Defined in BLE Spec
+	Temperature		// 0x2A6E
+	Humidity		// 0x2A6F
+	Pressure		// 0x2A6D
+    Custom          // My Uuid 0xF001 - has format descriptor for parsing
+
+	a list of Format data types are found in user manual
+
   For this to work you need the forked version of ArduinoBLE
   which supports connection to Windows and Android
   https://github.com/unknownconstant/ArduinoBLE/tree/pairing
@@ -15,42 +18,54 @@
 
   Tested on Arduino Uno WIFI Rev 2
 
-  Arduino code based on:
+  Arduino code partialy based on:
   https://programmaticponderings.com/2020/08/04/getting-started-with-bluetooth-low-energy-ble-and-generic-attribute-profile-gatt-specification-for-iot/
 
-  With some modifications. Values are generated internally as a demo
+  With some modifications. 
+  Values are generated internally for demo instead or reading I/O
   
  */
 #include <ArduinoBLE.h>
 
-#define SERIAL_DEBUG
-
 #ifndef SECTION_MEMBERS
 
-const char* SERVICE_BATTERY_ID = "180F"; // 0x180F
-const char* CHAR_BATTERY_LEVEL_ID = "2A19";
 const int GENERIC_ACCESS_APPEARANCE_ID = 1792; // BLE Spec 0x1792
 
 // Create battery service
-BLEService batteryService(SERVICE_BATTERY_ID);
-BLETypedCharacteristic<uint8_t> batteryLevelChar(CHAR_BATTERY_LEVEL_ID, BLERead | BLENotify);
+BLEService batteryService("180F");
+BLETypedCharacteristic<uint8_t> batteryLevelCharacteristic("2A19", BLERead | BLENotify);
 
+// Environment sensing service
 BLEService environmentService("181A");
 BLETypedCharacteristic<uint32_t> pressureCharacteristic("2A6D", BLERead | BLENotify);
 BLETypedCharacteristic<int16_t> tempCharacteristic("2A6E", BLERead | BLENotify);
 BLETypedCharacteristic<uint16_t> humidCharacteristic("2A6F", BLERead | BLENotify);
 
-// Track between 0-100
+// Custom 2 byte sensor service
+BLEService ioService("FF01");
+BLETypedCharacteristic<uint16_t> analogSensorCharacteristic("F001", BLERead | BLENotify);
+BLEDescriptor sensorDescriptorUserDescription("2901", "aSensor1"); // Defined in Spec
+uint8_t format[7] = { 
+	0x6,		// Data type. BLE spec 6 = uint16_t. Defines size of data in characteristic read 
+	(byte)-2,	// Exponent -2 sbyte. stored as byte. parsed out as sbyte to maintain sign
+	0x0, 0x0 ,	// Measurement uint16_t. 0 is unit-less. Adds abbreviation on display string
+	0x0,		// Namespace byte. 0 is undefined, 1 is BLE Sig (only one defined in spec)
+	0x0, 0x0	// Description uint
+};
+// BLE spec 0x2904 is the Format Descriptor
+BLEDescriptor senforDescriptorFormat("2904", format, sizeof(format));
+
+// Track dummy values 
 uint8_t batteryLevel = 93;
 int16_t tempLevel = 3392;
 uint16_t humidityLevl = 4400;
-uint32_t pressureLevel = 285;
+uint32_t pressureLevel = 28500;
+uint16_t analogLevel = 16025;
 
-unsigned long lasMsTimeBattery = 0;
+unsigned long lasMsTimeUpdate = 0;
 bool upIncrement = true;
 
 #endif // !SECTION_MEMBERS
-
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -72,8 +87,6 @@ void loop() {
 }
 
 
-
-
 #ifndef SECTION_BLE_INIT
 
 void SetupBLE() {
@@ -81,45 +94,51 @@ void SetupBLE() {
 		Serial.println("FAIL");
 		while (1);
 	}
-
-
+	// Device
 	BLE.setLocalName("Mikie BLE"); // visible in search
 	BLE.setDeviceName("MR BLE Device");
 	BLE.setAppearance(GENERIC_ACCESS_APPEARANCE_ID);
 	BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
 	BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
-
-	batteryService.addCharacteristic(batteryLevelChar);
+	
+	// Battery service
+	batteryService.addCharacteristic(batteryLevelCharacteristic);
 	BLE.addService(batteryService);
 	BLE.setAdvertisedService(batteryService);
 
+	// Environment sensing service with 3 characteristics
 	environmentService.addCharacteristic(tempCharacteristic);
 	environmentService.addCharacteristic(humidCharacteristic);
 	environmentService.addCharacteristic(pressureCharacteristic);
 	BLE.addService(environmentService);
 	BLE.setAdvertisedService(environmentService);
 
+	// My custom sensor service
+	analogSensorCharacteristic.addDescriptor(sensorDescriptorUserDescription);
+	analogSensorCharacteristic.addDescriptor(senforDescriptorFormat);
+	ioService.addCharacteristic(analogSensorCharacteristic);
+	BLE.addService(ioService);
+	BLE.setAdvertisedService(ioService);
+
 	BLE.advertise();
 
-	batteryLevelChar.writeValue(batteryLevel);
-	tempCharacteristic.writeValue(tempLevel);
-	pressureCharacteristic.writeValue(pressureLevel);
-	humidCharacteristic.writeValue(humidityLevl);
+	WriteValues();
 	Serial.println("BLE started");
-
 }
 
 #endif // !SECTION_BLE_INIT
 
 
 void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
+	// Simulate reading of actual hardware sensors for demo
 	unsigned long currentMs = millis();
-	if ((currentMs - lasMsTimeBattery) > msInterval) {
-		lasMsTimeBattery = currentMs;
+	if ((currentMs - lasMsTimeUpdate) > msInterval) {
+		lasMsTimeUpdate = currentMs;
 		if (upIncrement) {
 			tempLevel += 111;
 			humidityLevl += 212;
 			pressureLevel += 18;
+			analogLevel += 67;
 			batteryLevel++;
 			if (batteryLevel > 99) {
 				batteryLevel = 99;
@@ -131,22 +150,42 @@ void WriteBatteryLevelOnMsInterval(unsigned long msInterval) {
 			tempLevel -= 111;
 			humidityLevl -= 212;
 			pressureLevel -= 18;
+			analogLevel -= 67;
 			batteryLevel--;
-			if (batteryLevel < 60) {
+			if (batteryLevel < 85) {
 				upIncrement = true;
 				batteryLevel = 60;
 			}
 		}
-		Serial.print("Level:"); Serial.println(batteryLevel);
-		if (batteryLevelChar.writeValue(batteryLevel) == 0) {
-			Serial.println("Write fail");
-		}
-
-		tempCharacteristic.writeValue(tempLevel);
-		humidCharacteristic.writeValue(humidityLevl);
-		pressureCharacteristic.writeValue(pressureLevel);
+		WriteValues();
 	}
 }
+
+
+void ResetValues() {
+	batteryLevel = 93;
+	tempLevel = 3392;
+	humidityLevl = 4400;
+	pressureLevel = 285;
+	analogLevel = 16025;
+}
+
+
+void WriteValues() {
+	batteryLevelCharacteristic.writeValue(batteryLevel);
+	tempCharacteristic.writeValue(tempLevel);
+	humidCharacteristic.writeValue(humidityLevl);
+	pressureCharacteristic.writeValue(pressureLevel);
+	analogSensorCharacteristic.writeValue(analogLevel);
+
+	Serial.print("    Battery:"); Serial.println(batteryLevel);
+	Serial.print("Temperature:"); Serial.println(tempLevel);
+	Serial.print("   Pressure:"); Serial.println(pressureLevel);
+	Serial.print("   Humidity:"); Serial.println(humidityLevl);
+	Serial.print("  An sensor:"); Serial.println(analogLevel);
+}
+ 
+
 
 
 #ifndef SECTION_EVENT_HANDLERS
@@ -162,7 +201,7 @@ void bleOnConnectHandler(BLEDevice central) {
 /// <param name="central">The device disconnecting</param>
 void bleOnDisconnectHandler(BLEDevice central) {
 	Serial.println("DISCONNECTED");
-	// any other reset stuff
+	ResetValues();
 }
 
 
@@ -170,20 +209,3 @@ void bleOnDisconnectHandler(BLEDevice central) {
 #endif // !SECTION_EVENT_HANDLERS
 
 
-#ifdef SERIAL_DEBUG
-
-void SetupDbg(int baud) {
-	Serial.begin(baud);
-	while (!Serial) {}
-	//DbgLine("started...");
-	Serial.println("started...");
-}
-
-//void DbgLine(const char* msg) {
-//	Serial.println(msg);
-//}
-
-#else
-void SetupSerial(int baud) {}
-//void DbgLine(char* msg) {}
-#endif // SERIAL_DEBUG
