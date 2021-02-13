@@ -68,6 +68,7 @@ EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
+		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE-pairing\ArduinoBLE-pairing-1.1.3.vcxitems*{1a2ef82f-6f49-4048-953f-3d2a272c2733}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{2c988024-b820-44b8-bc1a-be48cd4ca306}*SharedItemsImports = 4
 		C:\Users\Michael\Documents\Arduino\libraries\Arduino_LSM6DS3\Arduino_LSM6DS3-1.0.0.vcxitems*{5162f131-adaf-4f9a-bc00-9f5f2a23d73e}*SharedItemsImports = 9
