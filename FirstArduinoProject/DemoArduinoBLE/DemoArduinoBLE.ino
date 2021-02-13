@@ -24,6 +24,9 @@
   With some modifications. 
   Values are generated internally for demo instead or reading I/O
   
+  NOTE: The Notify and Indicate are never set in the BLEArduino library. I have made changes to 
+        it and submitted for review
+
  */
 #include <ArduinoBLE.h>
 
@@ -45,6 +48,8 @@ BLETypedCharacteristic<uint16_t> humidCharacteristic("2A6F", BLERead | BLENotify
 BLEService ioService("FF01");
 BLETypedCharacteristic<uint16_t> analogSensorCharacteristic("F001", BLERead | BLENotify);
 BLEDescriptor sensorDescriptorUserDescription("2901", "aSensor1"); // Defined in Spec
+
+
 uint8_t format[7] = { 
 	0x6,		// Data type. BLE spec 6 = uint16_t. Defines size of data in characteristic read 
 	(byte)-2,	// Exponent -2 sbyte. stored as byte. parsed out as sbyte to maintain sign
@@ -116,11 +121,15 @@ void SetupBLE() {
 	// My custom sensor service
 	analogSensorCharacteristic.addDescriptor(sensorDescriptorUserDescription);
 	analogSensorCharacteristic.addDescriptor(senforDescriptorFormat);
+//	analogSensorCharacteristic.addDescriptor(sensorCCCDescriptor);
 	ioService.addCharacteristic(analogSensorCharacteristic);
 	BLE.addService(ioService);
 	BLE.setAdvertisedService(ioService);
 
 	BLE.advertise();
+
+	//Serial.print("Temperature Properties: "); Serial.println(tempCharacteristic.properties());
+	//Serial.print("    Presure Properties: "); Serial.println(pressureCharacteristic.properties());
 
 	WriteValues();
 	Serial.println("BLE started");

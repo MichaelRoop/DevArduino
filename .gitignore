@@ -12,3 +12,9 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 /FirstArduinoProject/ArduinoBLESerial/Release/*
 /FirstArduinoProject/DemoArduinoBLE/Release/*
 /FirstArduinoProject/ArduinoEthernetTCP/Release/*
+/FirstArduinoProject/DemoArduinoBLEAggregate/Release/*
+/FirstArduinoProject/ArduinoBLESerial/__vm/Compile.vmps.xml
+/FirstArduinoProject/ArduinoBLESerial/__vm/Compile.vmps.xml
+/FirstArduinoProject/DemoArduinoBLEAggregate/__vm/Compile.vmps.xml
+/FirstArduinoProject/DemoArduinoBLEAggregate/__vm/Upload.vmps.xml
+/FirstArduinoProject/DemoArduinoBLEAggregate/__vm/.DemoArduinoBLEAggregate.vsarduino.h
