@@ -94,95 +94,41 @@ void SetupBLE() {
 	BLE.setEventHandler(BLEConnected, bleOnConnectHandler);
 	BLE.setEventHandler(BLEDisconnected, bleOnDisconnectHandler);
 
+	// Add descriptors to Characteristic and Characteristic to Service
 	multiDataCharacteristic.addDescriptor(descriptorFormat_Aggregate);
 	multiDataCharacteristic.addDescriptor(descriptorFormat_Uint8);
 	multiDataCharacteristic.addDescriptor(descriptorFormat_Uint16);
 	multiDataCharacteristic.addDescriptor(descriptorFormat_Uint32);
-
 	ioService.addCharacteristic(multiDataCharacteristic);
 	BLE.addService(ioService);
 
-	// Handles are set when added to the service. They are now set
-	Serial.println("5");
-	Serial.println(descriptorFormat_Uint8.handle());
-	Serial.println(descriptorFormat_Uint16.handle());
-	Serial.println(descriptorFormat_Uint32.handle());
-
-	Serial.print("0x"); Serial.print(aggFormatHandles[0]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[1]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[2]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[3]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[4]);
-	Serial.print(",0x"); Serial.println(aggFormatHandles[5]);
-	Serial.println("");
-
-	// TODO problem. Handles only set after service added but the Characteristic needs it 
-	// Copy the handles of the Format Descriptors as the Agg Format payload. ORDER IMPORTANT
-	// TODO - the aggFormat was passed in as a const array so I do not think I can change it
-	//memcpy(&aggFormatHandles[0], (void*)descriptorFormat_Uint8.handle(), sizeof(uint16_t));
-	//memcpy(&aggFormatHandles[2], (void*)descriptorFormat_Uint16.handle(), sizeof(uint16_t));
-	//memcpy(&aggFormatHandles[4], (void*)descriptorFormat_Uint32.handle(), sizeof(uint16_t));
-	//// TODO - check. Think this will automatically become the data in the Agg descriptor
-
-	uint16_t h1 = descriptorFormat_Uint8.handle();
-	uint16_t h2 = descriptorFormat_Uint16.handle();
-	uint16_t h3 = descriptorFormat_Uint32.handle();
-	Serial.println(h1);
-	Serial.println(h2);
-	Serial.println(h3);
-	Serial.println("");
-
-
-	uint16_t* ptr = (uint16_t*)aggFormatHandles;
-	memcpy(&ptr[0], &h1, sizeof(uint16_t));
-	memcpy(&ptr[1], &h2, sizeof(uint16_t));
-	memcpy(&ptr[2], &h3, sizeof(uint16_t));
-
-
-	Serial.print("0x"); Serial.print(aggFormatHandles[0]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[1]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[2]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[3]);
-	Serial.print(",0x"); Serial.print(aggFormatHandles[4]);
-	Serial.print(",0x"); Serial.println(aggFormatHandles[5]);
-	Serial.println("");
-	Serial.print("0x"); Serial.print(descriptorFormat_Aggregate[0]);
-	Serial.print(",0x"); Serial.print(descriptorFormat_Aggregate[1]);
-	Serial.print(",0x"); Serial.print(descriptorFormat_Aggregate[2]);
-	Serial.print(",0x"); Serial.print(descriptorFormat_Aggregate[3]);
-	Serial.print(",0x"); Serial.print(descriptorFormat_Aggregate[4]);
-	Serial.print(",0x"); Serial.println(descriptorFormat_Aggregate[5]);
-
-
-
-
-	//descriptorFormat_Aggregate.value
-
-	Serial.println("6");
+	// Reset Aggregate value (Array of Format handles) set here 
+	// since they are all 0 until set with BLE.addService(ioService);
+	CopyHandleToAggregateValue(0, descriptorFormat_Uint8.handle());
+	CopyHandleToAggregateValue(1, descriptorFormat_Uint16.handle());
+	CopyHandleToAggregateValue(2, descriptorFormat_Uint32.handle());
 
 	BLE.setAdvertisedService(ioService);
 	BLE.advertise();
-	//WriteValues();
 	Serial.println("BLE started");
 }
 
 
-void WriteValues() {
-	Serial.println(descriptorFormat_Uint8.handle());
-	Serial.println(descriptorFormat_Uint16.handle());
-	Serial.println(descriptorFormat_Uint32.handle());
-	//return;
+void CopyHandleToAggregateValue(int pos, uint16_t handle) {
+	// Copy directly to the format array which is a pointer to the value
+	// contained in the Aggregate Descriptor
+	uint16_t* ptr = (uint16_t*)aggFormatHandles;
+	memcpy(&ptr[pos], &handle, sizeof(uint16_t));
 
-	// dest, source, size
+}
+
+
+void WriteValues() {
+	// copy data to characteristic data block and send
 	memcpy(&dataBlock[0], &uint08Level, 1);
 	memcpy(&dataBlock[1], &uint16Level, 2);
 	memcpy(&dataBlock[3], &uint32Level, 4);
-
 	multiDataCharacteristic.writeValue(dataBlock, sizeof(dataBlock));
-
-	Serial.print("Uint08:"); Serial.println(uint08Level);
-	Serial.print("Uint:16"); Serial.println(uint16Level);
-	Serial.print("Uint32:"); Serial.println(uint32Level);
 }
 
 
