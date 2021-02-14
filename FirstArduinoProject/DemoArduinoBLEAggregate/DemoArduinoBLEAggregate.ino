@@ -4,6 +4,8 @@
 
   Sets up a BLE with one characteristic and an aggregate format descriptor
 
+  Requires forked version of the ArduinoBLE
+
  */
 #include <ArduinoBLE.h>
 #include "C:/Program Files (x86)/Arduino/hardware/tools/avr/avr/include/string.h"
@@ -74,7 +76,7 @@ void loop() {
 	BLEDevice central = BLE.central();
 	if (central) {
 		while (central.connected()) {
-			WriteBatteryLevelOnMsInterval(5000);
+			WriteBatteryLevelOnMsInterval(1000);
 			delayMicroseconds(10);
 		}
 	}
@@ -107,16 +109,15 @@ void SetupBLE() {
 	CopyHandleToAggregateValue(0, descriptorFormat_Uint8.handle());
 	CopyHandleToAggregateValue(1, descriptorFormat_Uint16.handle());
 	CopyHandleToAggregateValue(2, descriptorFormat_Uint32.handle());
+	descriptorFormat_Aggregate.writeValue(aggFormatHandles, sizeof(aggFormatHandles));
 
 	BLE.setAdvertisedService(ioService);
 	BLE.advertise();
-	Serial.println("BLE started");
+	Serial.println("BLE started..");
 }
 
 
 void CopyHandleToAggregateValue(int pos, uint16_t handle) {
-	// Copy directly to the format array which is a pointer to the value
-	// contained in the Aggregate Descriptor
 	uint16_t* ptr = (uint16_t*)aggFormatHandles;
 	memcpy(&ptr[pos], &handle, sizeof(uint16_t));
 
