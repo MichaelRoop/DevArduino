@@ -21,3 +21,5 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 /FirstArduinoProject/ArduinoBLESerial/__vm/*
 /FirstArduinoProject/DemoArduinoBLE/__vm/Compile.vmps.xml
 /FirstArduinoProject/DemoArduinoBLE/__vm/Upload.vmps.xml
+/FirstArduinoProject/ArduinoWifi/Release/*
+/FirstArduinoProject/ArduinoWifi/__vm/Configuration.Release.vmps.xml

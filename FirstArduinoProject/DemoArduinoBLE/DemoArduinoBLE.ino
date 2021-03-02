@@ -13,7 +13,7 @@
 
   For this to work you need the forked version of ArduinoBLE
   which supports connection to Windows and Android
-  https://github.com/unknownconstant/ArduinoBLE/tree/pairing
+  https://github.com/unknownconstant/ArduinoBLE
 
 
   Tested on Arduino Uno WIFI Rev 2
@@ -48,7 +48,7 @@ BLETypedCharacteristic<uint16_t> humidCharacteristic("2A6F", BLERead | BLENotify
 // Custom 2 byte sensor service
 BLEService ioService("FF01");
 BLETypedCharacteristic<uint16_t> analogSensorCharacteristic("F001", BLERead | BLENotify | BLEWrite);
-BLEDescriptor sensorDescriptorUserDescription("2901", "aSensor1"); // Defined in Spec
+BLEDescriptor sensorDescriptorUserDescription("2901", "An Sensor 1"); // Defined in Spec
 
 uint8_t format[7] = { 
 	0x6,		// Data type. BLE spec 6 = uint16_t. Defines size of data in characteristic read 
@@ -61,6 +61,7 @@ uint8_t format[7] = {
 BLEDescriptor sensorDescriptorFormat("2904", format, sizeof(format));
 
 // Custom bool onOff sensor
+BLEDescriptor onOffDescriptorUserDescription("2901", "On Off Switch"); // Defined in Spec
 BLEBooleanCharacteristic onOffCharacteristic("F002", BLERead | BLENotify | BLEWrite);
 uint8_t onOffData[]{ 0x01,0x0, 0x0,0x0, 0x0,0x0, 0x0 };
 BLEDescriptor onOffDataDesc("2904", onOffData, sizeof(onOffData));
@@ -126,6 +127,7 @@ void SetupBLE() {
 
 	// My custom sensor service
 	onOffCharacteristic.addDescriptor(onOffDataDesc);
+	onOffCharacteristic.addDescriptor(onOffDescriptorUserDescription);
 	onOffCharacteristic.setEventHandler(BLEWritten, onOffHandler);
 	ioService.addCharacteristic(onOffCharacteristic);
 
