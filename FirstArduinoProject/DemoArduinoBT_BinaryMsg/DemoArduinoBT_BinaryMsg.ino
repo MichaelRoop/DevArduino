@@ -62,6 +62,20 @@ enum DataType {
 #define ANALOG_0_ID 20
 #define ANALOG_1_ID 21
 
+// IO IDs from incoming message
+#define LED_RED_PIN_ID 10
+#define LED_BLUE_PIN_ID 11
+#define PMW_PIN_X_ID 12
+#define PMW_PIN_Y_ID 13
+
+// Arduino physical pins
+#define LED_RED_PIN 1
+#define LED_BLUE_PIN 2
+#define PMW_PIN_X 9
+#define PMW_PIN_Y 10
+
+
+
 // Analog debounce limit
 #define ANALOG_DEBOUNCE_GAP 5
 
@@ -155,39 +169,12 @@ void ListenForData() {
 
 // May have to put these in a stack where the send can happend when other sends complete
 void CheckForSendBackData() {
+	// In our demo, a KY-013 temperature sensor is attached to Analog pin A0
 	if (DebounceValue(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
 		SendTemperature(lastA0Value);
 	}
 	//DebounceValue(analogRead(A1), &lastA1Value, ANALOG_1_ID);
 }
-
-void SendTemperature(int sensorValue) {
-	float kelvin = TemperatureKelvin(sensorValue);
-	//SendFloatMsg(ANALOG_0_ID, kelvin);
-	SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(kelvin));
-	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(kelvin));
-}
-
-
-float TemperatureKelvin(int sensorValue) {
-	// KY-013 analog temperature sensor
-// https://arduinomodules.info/ky-013-analog-temperature-sensor-module/
-	float R1 = 10000; // value of R1 on board
-	float c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741;  // steinhart-hart coeficients for thermistor
-	float R2 = R1 * (1023.0 / (float)sensorValue - 1.0);			 // calculate resistance on thermistor
-	float logR2 = log(R2);
-	return (1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)); // temperature in Kelvin
-}
-
-float KelvinToCelcius(float kelvin) {
-	return kelvin - 273.15;
-}
-
-
-float KelvinToFarenheit(float kelvin) {
-	return (KelvinToCelcius(kelvin) * 9.0) / 5.0 + 32.0;
-}
-
 
 
 bool DebounceValue(int current, int* last, uint8_t pinId) {
@@ -198,8 +185,6 @@ bool DebounceValue(int current, int* last, uint8_t pinId) {
 	}
 	return false;
 }
-
-
 
 #endif // !SECTION_PRIVATE_HELPERS
 
@@ -229,21 +214,18 @@ bool ValidateIncomingMsg(size_t readCount) {
 }
 
 
-//Validate that the correct data type for your IO point
+// Validate that the correct data type for incoming IO point ID
 bool ValidateIncomingValue() {
-	
-	// Note: The id does not need to match the pin number. The id is whatever 
-	// you set it to.  You can map id to pin here. Just using same for simplicity
 	bool result = false;
 	switch (inMsg.id) {
-	case 1:
-	case 2:
-		// Uno digital pins
+	case LED_RED_PIN_ID:
+	case LED_BLUE_PIN_ID:
+		// Arduino UNO digital pins. Validate data type
 		result = inMsg.dataType = typeBool;
 		break;
-	case 3:
-	case 4:
-		// Uno pins with PMW
+	case PMW_PIN_X_ID:
+	case PMW_PIN_Y_ID:
+		// UNO pins with PMW. Validate data type
 		result = inMsg.dataType = typeUInt8;
 		break;
 		// TODO - add analog
@@ -262,26 +244,24 @@ bool ValidateIncomingValue() {
 // Apply the value to the correct IO
 void ApplyInMsgToIO() {
 	switch (inMsg.id) {
-	case 1:
-		digitalWrite(1, (inMsg.value.boolVal == true) ? HIGH : LOW);
+	case LED_RED_PIN_ID:
+		digitalWrite(LED_RED_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
 		break;
-	case 2:
-		digitalWrite(2, (inMsg.value.boolVal == true) ? HIGH : LOW);
+	case LED_BLUE_PIN_ID:
+		digitalWrite(LED_BLUE_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
 		break;
 	case 3:
-		analogWrite(9, inMsg.value.uint8Val);
+		analogWrite(PMW_PIN_X, inMsg.value.uint8Val);
 		break;
 	case 4:
-		analogWrite(10, inMsg.value.uint8Val);
+		analogWrite(PMW_PIN_Y, inMsg.value.uint8Val);
 		break;
 		// TODO Add analog
 	default:
 		// Should never happen. Already validated
 		break;
 	}
-
 }
-
 
 #endif // !SECTION_INPUT_MSG_HELPERS
 
@@ -370,6 +350,42 @@ void DbgDumpOutMsg(uint8_t dataType) {
 }
 
 #endif // !SECTION_OUTPUT_MSG_HELPERS
+
+#ifndef SECTION_TEMPERATURE_CONVERSIONS
+
+// Convert raw sensor to temperature
+void SendTemperature(int sensorValue) {
+	//SendFloatMsg(ANALOG_0_ID, TemperatureKelvin(sensorValue));
+	SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(TemperatureKelvin(sensorValue)));
+	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(TemperatureKelvin(sensorValue)));
+}
+
+
+// Convert raw sensor to degrees Kelvin
+float TemperatureKelvin(int sensorValue) {
+	// KY-013 analog temperature sensor
+	// https://arduinomodules.info/ky-013-analog-temperature-sensor-module/
+	float R1 = 10000; // value of R1 on board
+	float c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741;  // steinhart-hart coeficients for thermistor
+	float R2 = R1 * (1023.0 / (float)sensorValue - 1.0);			 // calculate resistance on thermistor
+	float logR2 = log(R2);
+	return (1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)); // temperature in Kelvin
+}
+
+
+// Convert Kelvin to Celcius
+float KelvinToCelcius(float kelvin) {
+	return kelvin - 273.15;
+}
+
+
+// Convert Kelvin to Fahrenheit
+float KelvinToFarenheit(float kelvin) {
+	return (KelvinToCelcius(kelvin) * 9.0) / 5.0 + 32.0;
+}
+
+#endif // !SECTION_TEMPERATURE_CONVERSIONS
+
 
 
 
