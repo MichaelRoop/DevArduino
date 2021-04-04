@@ -65,6 +65,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DemoArduinoBLE", "DemoArdui
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DemoArduinoBLEAggregate", "DemoArduinoBLEAggregate\DemoArduinoBLEAggregate.vcxproj", "{7F07FD27-B563-42B1-82D7-C3B6FAC9AE45}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DemoArduinoBT_BinaryMsg", "DemoArduinoBT_BinaryMsg\DemoArduinoBT_BinaryMsg.vcxproj", "{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
@@ -363,6 +365,16 @@ Global
 		{7F07FD27-B563-42B1-82D7-C3B6FAC9AE45}.Release|x64.ActiveCfg = Release|Win32
 		{7F07FD27-B563-42B1-82D7-C3B6FAC9AE45}.Release|x86.ActiveCfg = Release|Win32
 		{7F07FD27-B563-42B1-82D7-C3B6FAC9AE45}.Release|x86.Build.0 = Release|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Debug|ARM.ActiveCfg = Debug|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Debug|x64.ActiveCfg = Debug|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Debug|x86.ActiveCfg = Debug|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Debug|x86.Build.0 = Debug|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Release|ARM.ActiveCfg = Release|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Release|ARM64.ActiveCfg = Release|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Release|x64.ActiveCfg = Release|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Release|x86.ActiveCfg = Release|Win32
+		{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
