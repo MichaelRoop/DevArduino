@@ -16,6 +16,7 @@ typedef __attribute__((packed)) union  {
 	uint16_t uint16Val;
 	int32_t int32Val;
 	uint32_t uint32Val;
+	float floatVal;
 	// The string must include the null terminator within the 32 bytes
 	char stringVal[sizeof(uint32_t)];
 } MsgValue;
@@ -34,6 +35,7 @@ typedef __attribute__((packed)) struct  {
 } MsgStruct;
 
 
+// Corresponds to data types on App
 enum DataType {
 	tyepUndefined = 0,
 	typeBool = 1,
@@ -43,8 +45,9 @@ enum DataType {
 	typeUInt16 = 5,
 	typeInt32 = 6,
 	typeUInt32 = 7,
-	typeString = 8,
-	typeInvalid = 9
+	typeFloat32 = 8,
+	typeString = 9,
+	typeInvalid = 10
 };
 
 
@@ -56,8 +59,11 @@ enum DataType {
 #define EOT 0x04
 
 // These are the IDs for the outgoing messages
-#define ANALOG_1_ID 20
-#define ANALOG_2_ID 21
+#define ANALOG_0_ID 20
+#define ANALOG_1_ID 21
+
+// Analog debounce limit
+#define ANALOG_DEBOUNCE_GAP 5
 
 
 #endif // !SECTION_TYPES_AND_ENUMS
@@ -112,9 +118,9 @@ void Initialize() {
 	pinMode(9, OUTPUT);
 	pinMode(10, OUTPUT);
 
-	// Analog read values
-	lastA0Value = 0;
-	lastA1Value = 0;
+	// Analog read values. Out of range forces first value to send
+	lastA0Value = 0xFFFFFFFF;
+	lastA1Value = 0xFFFFFFFF;
 
 	// The out messagea
 	memset(&outMsg, 0, sizeof(MsgStruct));
@@ -149,17 +155,50 @@ void ListenForData() {
 
 // May have to put these in a stack where the send can happend when other sends complete
 void CheckForSendBackData() {
-	int tmp = analogRead(A0);
-	if (tmp != lastA0Value) {
-		lastA0Value = tmp;
-		SendInt16Msg(ANALOG_1_ID, lastA0Value);
+	if (DebounceValue(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
+		SendTemperature(lastA0Value);
 	}
-	tmp = analogRead(A1);
-	if (tmp != lastA1Value) {
-		lastA1Value = tmp;
-		SendInt16Msg(ANALOG_2_ID, lastA1Value);
-	}
+	//DebounceValue(analogRead(A1), &lastA1Value, ANALOG_1_ID);
 }
+
+void SendTemperature(int sensorValue) {
+	float kelvin = TemperatureKelvin(sensorValue);
+	//SendFloatMsg(ANALOG_0_ID, kelvin);
+	SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(kelvin));
+	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(kelvin));
+}
+
+
+float TemperatureKelvin(int sensorValue) {
+	// KY-013 analog temperature sensor
+// https://arduinomodules.info/ky-013-analog-temperature-sensor-module/
+	float R1 = 10000; // value of R1 on board
+	float c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741;  // steinhart-hart coeficients for thermistor
+	float R2 = R1 * (1023.0 / (float)sensorValue - 1.0);			 // calculate resistance on thermistor
+	float logR2 = log(R2);
+	return (1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)); // temperature in Kelvin
+}
+
+float KelvinToCelcius(float kelvin) {
+	return kelvin - 273.15;
+}
+
+
+float KelvinToFarenheit(float kelvin) {
+	return (KelvinToCelcius(kelvin) * 9.0) / 5.0 + 32.0;
+}
+
+
+
+bool DebounceValue(int current, int* last, uint8_t pinId) {
+	if ((current - ANALOG_DEBOUNCE_GAP) > *last ||
+		(current + ANALOG_DEBOUNCE_GAP) < *last) {
+		*last = current;
+		return true;
+	}
+	return false;
+}
+
 
 
 #endif // !SECTION_PRIVATE_HELPERS
@@ -252,7 +291,7 @@ void SendBoolMsg(uint8_t id, bool value) {
 	outMsg.id = id;
 	outMsg.dataType = typeBool;
 	outMsg.value.boolVal = value;
-	SendMsg();
+	SendMsg(typeBool);
 }
 
 
@@ -260,15 +299,24 @@ void SendInt16Msg(uint8_t id, int value) {
 	outMsg.id = id;
 	outMsg.dataType = typeInt16;
 	outMsg.value.int16Val = (int16_t)value;
-	SendMsg();
+	SendMsg(typeInt16);
 }
+
+
+void SendFloatMsg(uint8_t id, float value) {
+	outMsg.id = id;
+	outMsg.dataType = typeFloat32;
+	outMsg.value.floatVal = value;
+	SendMsg(typeFloat32);
+}
+
 
 
 void SendUint32Msg(uint8_t id, uint32_t value) {
 	outMsg.id = id;
 	outMsg.dataType = typeInt32;
 	outMsg.value.uint32Val = value;
-	SendMsg();
+	SendMsg(typeInt32);
 }
 
 
@@ -276,25 +324,49 @@ void SendUint32Msg(uint8_t id, uint32_t value) {
 
 
 
-void SendMsg() {
-	DbgDumpOutMsg();
+void SendMsg(uint8_t dataType) {
+	DbgDumpOutMsg(dataType);
 	size_t sent = btSerial.write((uint8_t*)&outMsg, sizeof(MsgStruct));
-	Serial.print("Size sent:"); Serial.println(sent);
+	//Serial.print("Size sent:"); Serial.println(sent);
 }
 
 
 
 
-void DbgDumpOutMsg() {
-	Serial.println("");
-	Serial.print("sDel1:"); Serial.println(outMsg.sDelimiter1);
-	Serial.print("sDel2:"); Serial.println(outMsg.sDelimiter2);
-	Serial.print("   Id:"); Serial.println(outMsg.id);
-	Serial.print(" Type:"); Serial.println(outMsg.dataType);
-	Serial.print("Value b:"); Serial.println(outMsg.value.boolVal);
-	Serial.print("Value:"); Serial.println(outMsg.value.uint32Val);
-	Serial.print("eDel1:"); Serial.println(outMsg.eDelimiter1);
-	Serial.print("eDel2:"); Serial.println(outMsg.eDelimiter2);
+void DbgDumpOutMsg(uint8_t dataType) {
+	//Serial.println("");
+	//Serial.print("sDel1:"); Serial.println(outMsg.sDelimiter1);
+	//Serial.print("sDel2:"); Serial.println(outMsg.sDelimiter2);
+	//Serial.print("   Id:"); Serial.println(outMsg.id);
+	//// The demo just sends back int16 so we will dump that value
+	//Serial.print(" Type:"); Serial.println(outMsg.dataType);
+	//Serial.print("Value:"); Serial.println(outMsg.value.int16Val);
+	//Serial.print("eDel1:"); Serial.println(outMsg.eDelimiter1);
+	//Serial.print("eDel2:"); Serial.println(outMsg.eDelimiter2);
+
+
+	Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); 
+
+	switch (dataType) {
+	case typeBool:
+		Serial.println(outMsg.value.boolVal);
+		break;
+	case typeUInt16:
+		Serial.println(outMsg.value.int16Val);
+		break;
+	case typeInt32:
+		Serial.println(outMsg.value.int32Val);
+		break;
+	case typeFloat32:
+		Serial.println(outMsg.value.floatVal);
+		break;
+	default:
+		Serial.print("UNHANDLED for type:"); Serial.println(dataType);
+		break;
+	}
+
+	//Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); Serial.println(outMsg.value.int16Val);
+
 }
 
 #endif // !SECTION_OUTPUT_MSG_HELPERS
