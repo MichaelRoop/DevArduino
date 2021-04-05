@@ -123,10 +123,6 @@
     <ClInclude Include="MsgEnumerations.h" />
     <ClInclude Include="__vm\.DemoArduinoBT_BinaryMsg.vsarduino.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="MsgDefines.c" />
-    <ClCompile Include="MsgEnumerations.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
