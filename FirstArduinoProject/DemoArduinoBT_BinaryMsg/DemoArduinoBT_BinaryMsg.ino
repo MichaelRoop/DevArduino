@@ -92,18 +92,7 @@ void setup() {
 	SendBoolMsg(111, false);
 	SendUint32Msg(32, 31000);
 
-	MsgFloat32 f;
-	f.Id = 123;
-	f.Value = 321.2;
-	Serial.println(f.Soh);
-	Serial.println(f.Stx);
-	Serial.println(f.Size);
-	Serial.println(f.DataType);
-	Serial.println(f.Id);
-	Serial.println(f.Value);
-	Serial.println(f.Etx);
-	Serial.println(f.Eot);
-
+	DbgMsgs();
 
 
 
@@ -364,6 +353,40 @@ void SendTemperature(int sensorValue) {
 #endif // !SECTION_OUTPUT_MSG_HELPERS
 
 
+
+void DbgMsgs() {
+	MsgFloat32 f;
+	f.Id = 123;
+	f.Value = 321.2;
+	Serial.println(f.Soh);
+	Serial.println(f.Stx);
+	Serial.println(f.Size);
+	Serial.println(f.DataType);
+	Serial.println(f.Id);
+	Serial.println(f.Value);
+	Serial.println(f.Etx);
+	Serial.println(f.Eot);
+
+	MsgBool b;
+	MsgInt8 i8;
+	MsgUInt8 u8;
+	MsgInt16 i16;
+	MsgUInt16 u16;
+	MsgInt32 i32;
+	MsgUInt32 u32;
+
+	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.println(b.Size);
+	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.println(i8.Size);
+	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.println(u8.Size);
+	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.println(i16.Size);
+	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.println(u16.Size);
+	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.println(i32.Size);
+	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.println(u32.Size);
+	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.println(f.Size);
+
+
+
+}
 
 
 

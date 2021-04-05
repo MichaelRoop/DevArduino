@@ -11,7 +11,7 @@
 
 // Corresponds to data types on App
 enum MsgDataType {
-	tyepUndefined = 0,
+	typeUndefined = 0,
 	typeBool = 1,
 	typeInt8 = 2,
 	typeUInt8 = 3,
