@@ -9,45 +9,17 @@
 #include "MsgDefines.h"
 #include <SoftwareSerial.h>
 
-#ifndef SECTION_TYPES_AND_ENUMS
-
-//// Holds any value in one variable
-//typedef __attribute__((packed)) union  { 
-//	bool boolVal;
-//	int8_t int8Val;
-//	uint8_t uint8Val;
-//	int16_t int16Val;
-//	uint16_t uint16Val;
-//	int32_t int32Val;
-//	uint32_t uint32Val;
-//	float floatVal;
-//	// The string must include the null terminator within the 32 bytes
-//	char stringVal[sizeof(uint32_t)];
-//} MsgValue;
-//
-//
-//typedef __attribute__((packed)) struct  {
-//	uint8_t sDelimiter1;
-//	uint8_t sDelimiter2;
-//	uint8_t id;
-//	// DataType enum value identifies type held in value
-//	uint8_t dataType;
-//	// The payload
-//	MsgValue value;
-//	uint8_t eDelimiter1;
-//	uint8_t eDelimiter2;
-//} MsgStruct;
-
+#ifndef SECTION_DEFINES
 
 // These are the IDs for the outgoing messages
 #define ANALOG_0_ID 20
 #define ANALOG_1_ID 21
 
-// IO IDs from incoming message
-#define LED_RED_PIN_ID 10
-#define LED_BLUE_PIN_ID 11
-#define PMW_PIN_X_ID 12
-#define PMW_PIN_Y_ID 13
+// MSG IDs for incoming message
+#define IN_MSG_ID_LED_RED_PIN 10
+#define IN_MSG_ID_LED_BLUE_PIN 11
+#define IN_MSG_ID_PMW_PIN_X 12
+#define IN_MSG_ID_PMW_PIN_Y 13
 
 // Arduino physical pins
 #define LED_RED_PIN 1
@@ -55,23 +27,26 @@
 #define PMW_PIN_X 9
 #define PMW_PIN_Y 10
 
-
-
 // Analog debounce limit
 #define ANALOG_DEBOUNCE_GAP 5
 
+#define IN_BUFF_SIZE 20
 
-#endif // !SECTION_TYPES_AND_ENUMS
+#endif // !SECTION_DEFINES
 
 #ifndef SECTION_VARIABLES
 
-//MsgStruct inMsg;
-//MsgStruct outMsg;
 int lastA0Value;
 int lastA1Value;
 
+// Just have the types you need in your application. One can be used for 
+// multiple outgoing IOs by changing the ID and Value before send
 MsgFloat32 outFloat;
-MsgInt32 inMsg; // Temp for now
+
+// In buffer. Currently largest message is 12 bytes. We can just copy to 
+// A specific message in a function to avoid reserving that memory
+uint8_t buff[IN_BUFF_SIZE];
+uint8_t currentPos = 0;
 
 TemperatureProcessor tempProcessor;
 
@@ -79,30 +54,20 @@ TemperatureProcessor tempProcessor;
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
 
-
 #endif // !SECTION_VARIABLES
+
 
 void setup() {
 	Serial.begin(115200);
-
 	while (!Serial) { }
-	Serial.println("Dbg serial");
 	btSerial.begin(38400);
 	while (!btSerial) {	}
-	Serial.println("BT running");
+	Serial.println("BT ready");
 	Initialize();
 
-//	Serial.print(" Size of Msg:"); Serial.println(sizeof(inMsg));
-	//SendBoolMsg(111, false);
-	//SendUint32Msg(32, 31000);
-
 	//DbgMsgs();
-
-
-
 }
 
-// the loop function runs over and over again until power down or reset
 void loop() {
 	ListenForData();
 	CheckForSendBackData();
@@ -126,45 +91,94 @@ void Initialize() {
 	// Analog read values. Out of range forces first value to send
 	lastA0Value = 0xFFFFFFFF;
 	lastA1Value = 0xFFFFFFFF;
-
-	//// The out messagea
-	//memset(&outMsg, 0, sizeof(MsgStruct));
-	//outMsg.sDelimiter1 = SOH;
-	//outMsg.sDelimiter2 = STX;
-	//outMsg.eDelimiter1 = ETX;
-	//outMsg.eDelimiter2 = EOT;
-	
-
-	// Contract between dashboard and device
-	//outFloat.Id = 15;
-
-
-	ResetInMsg();
+	ResetInBuff();
 }
 
 
-void ResetInMsg() {
-	// TODO need array to read from BT
-
-
-	//memset(&inMsg, 0, sizeof(MsgStruct));
+void ResetInBuff() {
+	memset(buff, 0, IN_BUFF_SIZE);
+	currentPos = 0;
 }
 
 
 void ListenForData() {
 	int available = btSerial.available();
 	if (available > 0) {
+		if (currentPos == 0) {
+			// New message arriving
+			if (available >= MSG_HEADER_SIZE) {
+				size_t count = btSerial.readBytes(buff, MSG_HEADER_SIZE);
+				if (count == MSG_HEADER_SIZE) {
+					if (ValidateHeader(buff)) {
+						uint16_t size = GetSizeFromHeader(buff);
+						if (size > 0) {
+							uint16_t remaining = size - MSG_HEADER_SIZE;
+							available = btSerial.available();
+							if (available >= remaining) {
+								// Copy in rest to buffer to make up complete message
+								count = btSerial.readBytes(buff + MSG_HEADER_SIZE, remaining);
+								if (count == remaining) {
 
-		//if (available >= sizeof(MsgStruct)) {
-		//	ResetInMsg();
-		//	if (ValidateIncomingMsg(btSerial.readBytes((uint8_t*)&inMsg, sizeof(MsgStruct)))) {
-		//		if (ValidateIncomingValue()) {
-		//			ApplyInMsgToIO();
-		//		}
-		//	}
-		//}
+								}
+								else {
+									ResetInBuff();
+									Serial.println("Bad remaining read");
+								}
+							}
+						}
+						else {
+							ResetInBuff();
+							Serial.println("Bad msg size");
+						}
+					}
+				}
+				else {
+					ResetInBuff();
+					Serial.println("Bad header read");
+				}
+
+
+
+
+				//	ResetInMsg();
+				//	if (ValidateIncomingMsg(btSerial.readBytes((uint8_t*)&inMsg, sizeof(MsgStruct)))) {
+				//		if (ValidateIncomingValue()) {
+				//			ApplyInMsgToIO();
+				//		}
+				//	}
+			}
+		}
+		else {
+			// another message part arriving
+		}
 	}
 }
+
+
+bool ValidateHeader(uint8_t* buff) {
+	return
+		(*(buff + SOH_POS) == _SOH) &&
+		(*(buff + STX_POS) == _STX) &&
+		(*(buff + TYPE_POS) > typeUndefined) &&
+		(*(buff + TYPE_POS) < typeInvalid) &&
+		// Following is validating the range of incoming
+		// message IDs that you would have set in the dashboard
+		// This can vary by dashboard configuration
+		(*(buff + ID_POS) >= IN_MSG_ID_LED_RED_PIN) &&
+		(*(buff + ID_POS) <= IN_MSG_ID_PMW_PIN_Y);
+}
+
+
+uint16_t GetSizeFromHeader(uint8_t* buff) {
+	uint16_t size = 0;
+	memcpy(&size, (buff + SIZE_POS), sizeof(uint16_t));
+	// Message size must be at least big enough for header, footer and 1 byte payload
+	if (size <= (MSG_HEADER_SIZE + MSG_FOOTER_SIZE + 1)) {
+		size = 0;
+	}
+	return size;
+}
+
 
 
 // May have to put these in a stack where the send can happend when other sends complete
@@ -288,11 +302,6 @@ void SendFloatMsg(uint8_t id, float value) {
 	outFloat.Value = value;
 	Serial.println(value);
 	SendMsg(&outFloat, outFloat.Size);
-
-	//outMsg.id = id;
-	//outMsg.dataType = typeFloat32;
-	//outMsg.value.floatVal = value;
-	//SendMsg(typeFloat32);
 }
 
 
@@ -385,14 +394,14 @@ void SendTemperature(int sensorValue) {
 //	MsgFloat32 f;
 //	f.Id = 123;
 //	f.Value = 321.2;
-//	Serial.println(f.Soh);
-//	Serial.println(f.Stx);
+//	Serial.println(f.SOH);
+//	Serial.println(f.STX);
 //	Serial.println(f.Size);
 //	Serial.println(f.DataType);
 //	Serial.println(f.Id);
 //	Serial.println(f.Value);
-//	Serial.println(f.Etx);
-//	Serial.println(f.Eot);
+//	Serial.println(f.ETX);
+//	Serial.println(f.EOT);
 //
 //	MsgBool b;
 //	MsgInt8 i8;
@@ -402,14 +411,14 @@ void SendTemperature(int sensorValue) {
 //	MsgInt32 i32;
 //	MsgUInt32 u32;
 //
-//	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.println(b.Size);
-//	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.println(i8.Size);
-//	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.println(u8.Size);
-//	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.println(i16.Size);
-//	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.println(u16.Size);
-//	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.println(i32.Size);
-//	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.println(u32.Size);
-//	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.println(f.Size);
+//	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.print(b.Size); Serial.print(" - "); Serial.println(sizeof(b));
+//	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.print(i8.Size); Serial.print(" - "); Serial.println(sizeof(i8));
+//	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.print(u8.Size); Serial.print(" - "); Serial.println(sizeof(u8));
+//	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.print(i16.Size); Serial.print(" - "); Serial.println(sizeof(i16));
+//	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.print(u16.Size); Serial.print(" - "); Serial.println(sizeof(u16));
+//	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.print(i32.Size); Serial.print(" - "); Serial.println(sizeof(i32));
+//	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.print(u32.Size); Serial.print(" - "); Serial.println(sizeof(u32));
+//	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.print(f.Size); Serial.print(" - "); Serial.println(sizeof(f));
 //}
 
 
