@@ -3,12 +3,13 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include "MsgDefines.h"
 #include <SoftwareSerial.h>
 
 #ifndef SECTION_TYPES_AND_ENUMS
 
 // Holds any value in one variable
-typedef __attribute__((packed)) union  {
+typedef __attribute__((packed)) union  { 
 	bool boolVal;
 	int8_t int8Val;
 	uint8_t uint8Val;
@@ -50,13 +51,6 @@ enum DataType {
 	typeInvalid = 10
 };
 
-
-// Start of heading, start of text
-#define SOH 0x01
-#define STX 0x02
-// End of text end of transmission
-#define ETX 0x03
-#define EOT 0x04
 
 // These are the IDs for the outgoing messages
 #define ANALOG_0_ID 20
