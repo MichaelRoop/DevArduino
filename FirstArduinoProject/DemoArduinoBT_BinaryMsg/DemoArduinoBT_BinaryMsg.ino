@@ -11,32 +11,32 @@
 
 #ifndef SECTION_TYPES_AND_ENUMS
 
-// Holds any value in one variable
-typedef __attribute__((packed)) union  { 
-	bool boolVal;
-	int8_t int8Val;
-	uint8_t uint8Val;
-	int16_t int16Val;
-	uint16_t uint16Val;
-	int32_t int32Val;
-	uint32_t uint32Val;
-	float floatVal;
-	// The string must include the null terminator within the 32 bytes
-	char stringVal[sizeof(uint32_t)];
-} MsgValue;
-
-
-typedef __attribute__((packed)) struct  {
-	uint8_t sDelimiter1;
-	uint8_t sDelimiter2;
-	uint8_t id;
-	// DataType enum value identifies type held in value
-	uint8_t dataType;
-	// The payload
-	MsgValue value;
-	uint8_t eDelimiter1;
-	uint8_t eDelimiter2;
-} MsgStruct;
+//// Holds any value in one variable
+//typedef __attribute__((packed)) union  { 
+//	bool boolVal;
+//	int8_t int8Val;
+//	uint8_t uint8Val;
+//	int16_t int16Val;
+//	uint16_t uint16Val;
+//	int32_t int32Val;
+//	uint32_t uint32Val;
+//	float floatVal;
+//	// The string must include the null terminator within the 32 bytes
+//	char stringVal[sizeof(uint32_t)];
+//} MsgValue;
+//
+//
+//typedef __attribute__((packed)) struct  {
+//	uint8_t sDelimiter1;
+//	uint8_t sDelimiter2;
+//	uint8_t id;
+//	// DataType enum value identifies type held in value
+//	uint8_t dataType;
+//	// The payload
+//	MsgValue value;
+//	uint8_t eDelimiter1;
+//	uint8_t eDelimiter2;
+//} MsgStruct;
 
 
 // These are the IDs for the outgoing messages
@@ -65,16 +65,20 @@ typedef __attribute__((packed)) struct  {
 
 #ifndef SECTION_VARIABLES
 
-MsgStruct inMsg;
-MsgStruct outMsg;
+//MsgStruct inMsg;
+//MsgStruct outMsg;
 int lastA0Value;
 int lastA1Value;
+
+MsgFloat32 outFloat;
+MsgInt32 inMsg; // Temp for now
 
 TemperatureProcessor tempProcessor;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
+
 
 #endif // !SECTION_VARIABLES
 
@@ -88,11 +92,11 @@ void setup() {
 	Serial.println("BT running");
 	Initialize();
 
-	Serial.print(" Size of Msg:"); Serial.println(sizeof(inMsg));
-	SendBoolMsg(111, false);
-	SendUint32Msg(32, 31000);
+//	Serial.print(" Size of Msg:"); Serial.println(sizeof(inMsg));
+	//SendBoolMsg(111, false);
+	//SendUint32Msg(32, 31000);
 
-	DbgMsgs();
+	//DbgMsgs();
 
 
 
@@ -123,33 +127,42 @@ void Initialize() {
 	lastA0Value = 0xFFFFFFFF;
 	lastA1Value = 0xFFFFFFFF;
 
-	// The out messagea
-	memset(&outMsg, 0, sizeof(MsgStruct));
-	outMsg.sDelimiter1 = SOH;
-	outMsg.sDelimiter2 = STX;
-	outMsg.eDelimiter1 = ETX;
-	outMsg.eDelimiter2 = EOT;
+	//// The out messagea
+	//memset(&outMsg, 0, sizeof(MsgStruct));
+	//outMsg.sDelimiter1 = SOH;
+	//outMsg.sDelimiter2 = STX;
+	//outMsg.eDelimiter1 = ETX;
+	//outMsg.eDelimiter2 = EOT;
 	
+
+	// Contract between dashboard and device
+	//outFloat.Id = 15;
+
+
 	ResetInMsg();
 }
 
 
 void ResetInMsg() {
-	memset(&inMsg, 0, sizeof(MsgStruct));
+	// TODO need array to read from BT
+
+
+	//memset(&inMsg, 0, sizeof(MsgStruct));
 }
 
 
 void ListenForData() {
 	int available = btSerial.available();
 	if (available > 0) {
-		if (available >= sizeof(MsgStruct)) {
-			ResetInMsg();
-			if (ValidateIncomingMsg(btSerial.readBytes((uint8_t*)&inMsg, sizeof(MsgStruct)))) {
-				if (ValidateIncomingValue()) {
-					ApplyInMsgToIO();
-				}
-			}
-		}
+
+		//if (available >= sizeof(MsgStruct)) {
+		//	ResetInMsg();
+		//	if (ValidateIncomingMsg(btSerial.readBytes((uint8_t*)&inMsg, sizeof(MsgStruct)))) {
+		//		if (ValidateIncomingValue()) {
+		//			ApplyInMsgToIO();
+		//		}
+		//	}
+		//}
 	}
 }
 
@@ -177,164 +190,178 @@ bool DebounceValue(int current, int* last, uint8_t pinId) {
 
 #ifndef SECTION_INPUT_MSG_HELPERS
 
-bool ValidateIncomingMsg(size_t readCount) {
-	if (readCount != sizeof(MsgStruct)) {
-		Serial.println("Misread in bytes");
-		return false;
-	}
-
-	// Validate the packet
-	if (inMsg.sDelimiter1 != SOH ||
-		inMsg.sDelimiter2 != STX ||
-		inMsg.eDelimiter1 != ETX ||
-		inMsg.eDelimiter2 != EOT) {
-		Serial.println("Delimiters not matching");
-		return false;
-	}
-
-	// Validate data type
-	if (inMsg.dataType == 0 || inMsg.dataType >= typeInvalid) {
-		Serial.println("Invalid data type");
-		return false;
-	}
-	return true;
-}
-
-
-// Validate that the correct data type for incoming IO point ID
-bool ValidateIncomingValue() {
-	bool result = false;
-	switch (inMsg.id) {
-	case LED_RED_PIN_ID:
-	case LED_BLUE_PIN_ID:
-		// Arduino UNO digital pins. Validate data type
-		result = inMsg.dataType = typeBool;
-		break;
-	case PMW_PIN_X_ID:
-	case PMW_PIN_Y_ID:
-		// UNO pins with PMW. Validate data type
-		result = inMsg.dataType = typeUInt8;
-		break;
-		// TODO - add analog
-	default:
-		Serial.print("Unhandled ID:"); Serial.println(inMsg.id);
-		return false;
-	}
-
-	if (result == false) {
-		Serial.print("Type:"); Serial.print(inMsg.dataType); Serial.print(" invalid for Id:"); Serial.print(inMsg.id);
-	}
-	return result;
-}
+//bool ValidateIncomingMsg(size_t readCount) {
+//	if (readCount != sizeof(MsgStruct)) {
+//		Serial.println("Misread in bytes");
+//		return false;
+//	}
+//
+//	// Validate the packet
+//	if (inMsg.sDelimiter1 != SOH ||
+//		inMsg.sDelimiter2 != STX ||
+//		inMsg.eDelimiter1 != ETX ||
+//		inMsg.eDelimiter2 != EOT) {
+//		Serial.println("Delimiters not matching");
+//		return false;
+//	}
+//
+//	// Validate data type
+//	if (inMsg.dataType == 0 || inMsg.dataType >= typeInvalid) {
+//		Serial.println("Invalid data type");
+//		return false;
+//	}
+//	return true;
+//}
 
 
-// Apply the value to the correct IO
-void ApplyInMsgToIO() {
-	switch (inMsg.id) {
-	case LED_RED_PIN_ID:
-		digitalWrite(LED_RED_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
-		break;
-	case LED_BLUE_PIN_ID:
-		digitalWrite(LED_BLUE_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
-		break;
-	case 3:
-		analogWrite(PMW_PIN_X, inMsg.value.uint8Val);
-		break;
-	case 4:
-		analogWrite(PMW_PIN_Y, inMsg.value.uint8Val);
-		break;
-		// TODO Add analog
-	default:
-		// Should never happen. Already validated
-		break;
-	}
-}
+//// Validate that the correct data type for incoming IO point ID
+//bool ValidateIncomingValue() {
+//	bool result = false;
+//	switch (inMsg.id) {
+//	case LED_RED_PIN_ID:
+//	case LED_BLUE_PIN_ID:
+//		// Arduino UNO digital pins. Validate data type
+//		result = inMsg.dataType = typeBool;
+//		break;
+//	case PMW_PIN_X_ID:
+//	case PMW_PIN_Y_ID:
+//		// UNO pins with PMW. Validate data type
+//		result = inMsg.dataType = typeUInt8;
+//		break;
+//		// TODO - add analog
+//	default:
+//		Serial.print("Unhandled ID:"); Serial.println(inMsg.id);
+//		return false;
+//	}
+//
+//	if (result == false) {
+//		Serial.print("Type:"); Serial.print(inMsg.dataType); Serial.print(" invalid for Id:"); Serial.print(inMsg.id);
+//	}
+//	return result;
+//}
+
+
+//// Apply the value to the correct IO
+//void ApplyInMsgToIO() {
+//	switch (inMsg.id) {
+//	case LED_RED_PIN_ID:
+//		digitalWrite(LED_RED_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
+//		break;
+//	case LED_BLUE_PIN_ID:
+//		digitalWrite(LED_BLUE_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
+//		break;
+//	case 3:
+//		analogWrite(PMW_PIN_X, inMsg.value.uint8Val);
+//		break;
+//	case 4:
+//		analogWrite(PMW_PIN_Y, inMsg.value.uint8Val);
+//		break;
+//		// TODO Add analog
+//	default:
+//		// Should never happen. Already validated
+//		break;
+//	}
+//}
 
 #endif // !SECTION_INPUT_MSG_HELPERS
 
 #ifndef SECTION_OUTPUT_MSG_HELPERS
 
-void SendBoolMsg(uint8_t id, bool value) {
-	outMsg.id = id;
-	outMsg.dataType = typeBool;
-	outMsg.value.boolVal = value;
-	SendMsg(typeBool);
-}
-
-
-void SendInt16Msg(uint8_t id, int value) {
-	outMsg.id = id;
-	outMsg.dataType = typeInt16;
-	outMsg.value.int16Val = (int16_t)value;
-	SendMsg(typeInt16);
-}
-
-
+//void SendBoolMsg(uint8_t id, bool value) {
+//	outMsg.id = id;
+//	outMsg.dataType = typeBool;
+//	outMsg.value.boolVal = value;
+//	SendMsg(typeBool);
+//}
+//
+//
+//void SendInt16Msg(uint8_t id, int value) {
+//	outMsg.id = id;
+//	outMsg.dataType = typeInt16;
+//	outMsg.value.int16Val = (int16_t)value;
+//	SendMsg(typeInt16);
+//}
+//
+//
 void SendFloatMsg(uint8_t id, float value) {
-	outMsg.id = id;
-	outMsg.dataType = typeFloat32;
-	outMsg.value.floatVal = value;
-	SendMsg(typeFloat32);
+	outFloat.Id = id;
+	outFloat.Value = value;
+	Serial.println(value);
+	SendMsg(&outFloat, outFloat.Size);
+
+	//outMsg.id = id;
+	//outMsg.dataType = typeFloat32;
+	//outMsg.value.floatVal = value;
+	//SendMsg(typeFloat32);
 }
 
 
-
-void SendUint32Msg(uint8_t id, uint32_t value) {
-	outMsg.id = id;
-	outMsg.dataType = typeInt32;
-	outMsg.value.uint32Val = value;
-	SendMsg(typeInt32);
-}
-
-
-
-
+//
+//
+//
+//void SendUint32Msg(uint8_t id, uint32_t value) {
+//	outMsg.id = id;
+//	outMsg.dataType = typeInt32;
+//	outMsg.value.uint32Val = value;
+//	SendMsg(typeInt32);
+//}
 
 
-void SendMsg(uint8_t dataType) {
-	DbgDumpOutMsg(dataType);
-	size_t sent = btSerial.write((uint8_t*)&outMsg, sizeof(MsgStruct));
+
+void SendMsg(void* msg, int size) {
+	size_t sent = btSerial.write((uint8_t*)msg, size);
 	//Serial.print("Size sent:"); Serial.println(sent);
 }
 
 
+//void SendMsg(uint8_t dataType) {
+//	DbgDumpOutMsg(dataType);
+//	size_t sent = btSerial.write((uint8_t*)&outMsg, sizeof(MsgStruct));
+//	//Serial.print("Size sent:"); Serial.println(sent);
+//}
+
+//<template typename T>
+//void DbgDumpOutMsg<T>(MsgBinary<T> msg) {
+//
+//}
 
 
-void DbgDumpOutMsg(uint8_t dataType) {
-	//Serial.println("");
-	//Serial.print("sDel1:"); Serial.println(outMsg.sDelimiter1);
-	//Serial.print("sDel2:"); Serial.println(outMsg.sDelimiter2);
-	//Serial.print("   Id:"); Serial.println(outMsg.id);
-	//// The demo just sends back int16 so we will dump that value
-	//Serial.print(" Type:"); Serial.println(outMsg.dataType);
-	//Serial.print("Value:"); Serial.println(outMsg.value.int16Val);
-	//Serial.print("eDel1:"); Serial.println(outMsg.eDelimiter1);
-	//Serial.print("eDel2:"); Serial.println(outMsg.eDelimiter2);
 
-
-	Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); 
-
-	switch (dataType) {
-	case typeBool:
-		Serial.println(outMsg.value.boolVal);
-		break;
-	case typeUInt16:
-		Serial.println(outMsg.value.int16Val);
-		break;
-	case typeInt32:
-		Serial.println(outMsg.value.int32Val);
-		break;
-	case typeFloat32:
-		Serial.println(outMsg.value.floatVal);
-		break;
-	default:
-		Serial.print("UNHANDLED for type:"); Serial.println(dataType);
-		break;
-	}
-
-	//Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); Serial.println(outMsg.value.int16Val);
-
-}
+//void DbgDumpOutMsg(uint8_t dataType) {
+//	//Serial.println("");
+//	//Serial.print("sDel1:"); Serial.println(outMsg.sDelimiter1);
+//	//Serial.print("sDel2:"); Serial.println(outMsg.sDelimiter2);
+//	//Serial.print("   Id:"); Serial.println(outMsg.id);
+//	//// The demo just sends back int16 so we will dump that value
+//	//Serial.print(" Type:"); Serial.println(outMsg.dataType);
+//	//Serial.print("Value:"); Serial.println(outMsg.value.int16Val);
+//	//Serial.print("eDel1:"); Serial.println(outMsg.eDelimiter1);
+//	//Serial.print("eDel2:"); Serial.println(outMsg.eDelimiter2);
+//
+//
+//	Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); 
+//
+//	switch (dataType) {
+//	case typeBool:
+//		Serial.println(outMsg.value.boolVal);
+//		break;
+//	case typeUInt16:
+//		Serial.println(outMsg.value.int16Val);
+//		break;
+//	case typeInt32:
+//		Serial.println(outMsg.value.int32Val);
+//		break;
+//	case typeFloat32:
+//		Serial.println(outMsg.value.floatVal);
+//		break;
+//	default:
+//		Serial.print("UNHANDLED for type:"); Serial.println(dataType);
+//		break;
+//	}
+//
+//	//Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); Serial.println(outMsg.value.int16Val);
+//
+//}
 
 
 // Convert raw sensor to temperature
@@ -354,39 +381,36 @@ void SendTemperature(int sensorValue) {
 
 
 
-void DbgMsgs() {
-	MsgFloat32 f;
-	f.Id = 123;
-	f.Value = 321.2;
-	Serial.println(f.Soh);
-	Serial.println(f.Stx);
-	Serial.println(f.Size);
-	Serial.println(f.DataType);
-	Serial.println(f.Id);
-	Serial.println(f.Value);
-	Serial.println(f.Etx);
-	Serial.println(f.Eot);
-
-	MsgBool b;
-	MsgInt8 i8;
-	MsgUInt8 u8;
-	MsgInt16 i16;
-	MsgUInt16 u16;
-	MsgInt32 i32;
-	MsgUInt32 u32;
-
-	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.println(b.Size);
-	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.println(i8.Size);
-	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.println(u8.Size);
-	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.println(i16.Size);
-	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.println(u16.Size);
-	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.println(i32.Size);
-	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.println(u32.Size);
-	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.println(f.Size);
-
-
-
-}
+//void DbgMsgs() {
+//	MsgFloat32 f;
+//	f.Id = 123;
+//	f.Value = 321.2;
+//	Serial.println(f.Soh);
+//	Serial.println(f.Stx);
+//	Serial.println(f.Size);
+//	Serial.println(f.DataType);
+//	Serial.println(f.Id);
+//	Serial.println(f.Value);
+//	Serial.println(f.Etx);
+//	Serial.println(f.Eot);
+//
+//	MsgBool b;
+//	MsgInt8 i8;
+//	MsgUInt8 u8;
+//	MsgInt16 i16;
+//	MsgUInt16 u16;
+//	MsgInt32 i32;
+//	MsgUInt32 u32;
+//
+//	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.println(b.Size);
+//	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.println(i8.Size);
+//	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.println(u8.Size);
+//	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.println(i16.Size);
+//	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.println(u16.Size);
+//	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.println(i32.Size);
+//	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.println(u32.Size);
+//	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.println(f.Size);
+//}
 
 
 
