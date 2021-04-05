@@ -122,10 +122,12 @@
     <ClInclude Include="MsgDefines.h" />
     <ClInclude Include="MsgEnumerations.h" />
     <ClInclude Include="TemperatureProcessing.h" />
+    <ClInclude Include="TempProcessing.h" />
     <ClInclude Include="__vm\.DemoArduinoBT_BinaryMsg.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TemperatureProcessing.c" />
+    <ClCompile Include="TemperatureProcessing.cpp" />
+    <ClCompile Include="TempProcessing.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

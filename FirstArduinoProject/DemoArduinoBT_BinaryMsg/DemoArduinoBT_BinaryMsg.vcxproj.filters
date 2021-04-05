@@ -33,9 +33,15 @@
     <ClInclude Include="TemperatureProcessing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TempProcessing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TemperatureProcessing.c">
+    <ClCompile Include="TemperatureProcessing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TempProcessing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

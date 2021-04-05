@@ -3,6 +3,7 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include "TempProcessing.h"
 #include "MsgEnumerations.h"
 #include "MsgDefines.h"
 #include "TemperatureProcessing.h"
@@ -68,6 +69,8 @@ MsgStruct inMsg;
 MsgStruct outMsg;
 int lastA0Value;
 int lastA1Value;
+
+TemperatureProcessor tempProcessor;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
@@ -332,8 +335,14 @@ void DbgDumpOutMsg(uint8_t dataType) {
 
 // Convert raw sensor to temperature
 void SendTemperature(int sensorValue) {
+	tempProcessor.ProcessRaw(sensorValue);
+	SendFloatMsg(ANALOG_0_ID, tempProcessor.Celcius());
+
+	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Kelvin());
+	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Farenheit());
+
 	//SendFloatMsg(ANALOG_0_ID, TemperatureKelvin(sensorValue));
-	SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(TemperatureKelvin(sensorValue)));
+	//SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(TemperatureKelvin(sensorValue)));
 	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(TemperatureKelvin(sensorValue)));
 }
 
