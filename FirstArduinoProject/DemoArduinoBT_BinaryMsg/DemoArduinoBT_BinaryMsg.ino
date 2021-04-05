@@ -5,6 +5,7 @@
 */
 #include "MsgEnumerations.h"
 #include "MsgDefines.h"
+#include "TemperatureProcessing.h"
 #include <SoftwareSerial.h>
 
 #ifndef SECTION_TYPES_AND_ENUMS
@@ -328,9 +329,6 @@ void DbgDumpOutMsg(uint8_t dataType) {
 
 }
 
-#endif // !SECTION_OUTPUT_MSG_HELPERS
-
-#ifndef SECTION_TEMPERATURE_CONVERSIONS
 
 // Convert raw sensor to temperature
 void SendTemperature(int sensorValue) {
@@ -339,31 +337,10 @@ void SendTemperature(int sensorValue) {
 	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(TemperatureKelvin(sensorValue)));
 }
 
-
-// Convert raw sensor to degrees Kelvin
-float TemperatureKelvin(int sensorValue) {
-	// KY-013 analog temperature sensor
-	// https://arduinomodules.info/ky-013-analog-temperature-sensor-module/
-	float R1 = 10000; // value of R1 on board
-	float c1 = 0.001129148, c2 = 0.000234125, c3 = 0.0000000876741;  // steinhart-hart coeficients for thermistor
-	float R2 = R1 * (1023.0 / (float)sensorValue - 1.0);			 // calculate resistance on thermistor
-	float logR2 = log(R2);
-	return (1.0 / (c1 + c2 * logR2 + c3 * logR2 * logR2 * logR2)); // temperature in Kelvin
-}
+#endif // !SECTION_OUTPUT_MSG_HELPERS
 
 
-// Convert Kelvin to Celcius
-float KelvinToCelcius(float kelvin) {
-	return kelvin - 273.15;
-}
 
-
-// Convert Kelvin to Fahrenheit
-float KelvinToFarenheit(float kelvin) {
-	return (KelvinToCelcius(kelvin) * 9.0) / 5.0 + 32.0;
-}
-
-#endif // !SECTION_TEMPERATURE_CONVERSIONS
 
 
 
