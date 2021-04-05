@@ -10,7 +10,7 @@
 //#endif
 
 // Corresponds to data types on App
-enum DataType {
+enum MsgDataType {
 	tyepUndefined = 0,
 	typeBool = 1,
 	typeInt8 = 2,
@@ -20,8 +20,8 @@ enum DataType {
 	typeInt32 = 6,
 	typeUInt32 = 7,
 	typeFloat32 = 8,
-	typeString = 9,
-	typeInvalid = 10
+	//typeString = 9,
+	typeInvalid = 9
 };
 
 

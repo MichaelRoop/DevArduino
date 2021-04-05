@@ -3,10 +3,10 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include "MsgMessages.h"
 #include "TempProcessing.h"
 #include "MsgEnumerations.h"
 #include "MsgDefines.h"
-#include "TemperatureProcessing.h"
 #include <SoftwareSerial.h>
 
 #ifndef SECTION_TYPES_AND_ENUMS
@@ -91,6 +91,21 @@ void setup() {
 	Serial.print(" Size of Msg:"); Serial.println(sizeof(inMsg));
 	SendBoolMsg(111, false);
 	SendUint32Msg(32, 31000);
+
+	MsgFloat32 f;
+	f.Id = 123;
+	f.Value = 321.2;
+	Serial.println(f.Soh);
+	Serial.println(f.Stx);
+	Serial.println(f.Size);
+	Serial.println(f.DataType);
+	Serial.println(f.Id);
+	Serial.println(f.Value);
+	Serial.println(f.Etx);
+	Serial.println(f.Eot);
+
+
+
 
 }
 

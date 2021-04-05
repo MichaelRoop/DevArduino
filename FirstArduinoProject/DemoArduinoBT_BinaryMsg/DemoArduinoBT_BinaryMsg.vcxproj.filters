@@ -30,18 +30,21 @@
     <ClInclude Include="MsgEnumerations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TemperatureProcessing.h">
+    <ClInclude Include="Sample_C_header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TempProcessing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MsgMessages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TemperatureProcessing.cpp">
+    <ClCompile Include="TempProcessing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TempProcessing.cpp">
+    <ClCompile Include="MsgMessages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
