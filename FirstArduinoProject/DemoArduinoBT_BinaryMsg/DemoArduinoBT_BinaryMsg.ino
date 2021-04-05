@@ -3,6 +3,7 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include "MsgEnumerations.h"
 #include "MsgDefines.h"
 #include <SoftwareSerial.h>
 
@@ -34,22 +35,6 @@ typedef __attribute__((packed)) struct  {
 	uint8_t eDelimiter1;
 	uint8_t eDelimiter2;
 } MsgStruct;
-
-
-// Corresponds to data types on App
-enum DataType {
-	tyepUndefined = 0,
-	typeBool = 1,
-	typeInt8 = 2,
-	typeUInt8 = 3,
-	typeInt16 = 4,
-	typeUInt16 = 5,
-	typeInt32 = 6,
-	typeUInt32 = 7,
-	typeFloat32 = 8,
-	typeString = 9,
-	typeInvalid = 10
-};
 
 
 // These are the IDs for the outgoing messages

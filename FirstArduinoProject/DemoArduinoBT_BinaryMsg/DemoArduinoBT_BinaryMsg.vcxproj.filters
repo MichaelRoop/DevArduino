@@ -27,9 +27,15 @@
     <ClInclude Include="MsgDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MsgEnumerations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MsgDefines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MsgEnumerations.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
