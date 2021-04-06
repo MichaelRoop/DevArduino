@@ -23,6 +23,9 @@ public:
 	// Read data type field from header. Call ValidateHeader first
 	static MsgDataType GetDataTypeFromHeader(uint8_t* buff);
 
+	// Read the Id field from the header. Call ValidateHeader first
+	static uint8_t GetIdFromHeader(uint8_t* buff);
+
 	// Validate the entire message after it is read
 	static bool ValidateMessage(uint8_t* buff, int length);
 

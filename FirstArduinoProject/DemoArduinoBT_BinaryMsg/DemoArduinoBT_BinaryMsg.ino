@@ -51,6 +51,7 @@ TemperatureProcessor tempProcessor;
 // A specific message in a function to avoid reserving that memory
 uint8_t buff[IN_BUFF_SIZE];
 uint8_t currentPos = 0;
+uint16_t remaining = 0;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
@@ -82,12 +83,12 @@ void loop() {
 void Initialize() {
 
 	// Digital Pins for demo. Will differ per application
-	pinMode(1, OUTPUT);
-	pinMode(2, OUTPUT);
+	pinMode(LED_RED_PIN, OUTPUT);
+	pinMode(LED_BLUE_PIN, OUTPUT);
 
 	// Digital Pins with PWM for demo. Will differ per application
-	pinMode(9, OUTPUT);
-	pinMode(10, OUTPUT);
+	pinMode(PMW_PIN_X, OUTPUT);
+	pinMode(PMW_PIN_Y, OUTPUT);
 
 	// Analog read values. Out of range forces first value to send
 	lastA0Value = 0xFFFFFFFF;
@@ -99,6 +100,7 @@ void Initialize() {
 void ResetInBuff() {
 	memset(buff, 0, IN_BUFF_SIZE);
 	currentPos = 0;
+	remaining = 0;
 }
 
 
@@ -109,16 +111,17 @@ void ListenForData() {
 			GetNewMsg(available);
 		}
 		else {
-			GetMsgFragment(available);
+			GetRemainingMsgFragment(available);
 		}
 	}
 }
 
+
+// New message arriving. Don't pick up until the entire header is in BT buffer
 void GetNewMsg(int available) {
-	// New message arriving. Don't pick up until the entire header is arrived
 	if (available >= MSG_HEADER_SIZE) {
-		size_t count = btSerial.readBytes(buff, MSG_HEADER_SIZE);
-		if (!ValidateRead(MSG_HEADER_SIZE, count)) {
+		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
+		if (!ValidateRead(MSG_HEADER_SIZE, currentPos)) {
 			return;
 		}
 
@@ -141,18 +144,35 @@ void GetNewMsg(int available) {
 			return;
 		}
 
-		uint16_t remaining = size - MSG_HEADER_SIZE;
+		// Determine how many more bytes needed to complete the
+		// message. Check if bytes already available in BT buff
+		remaining = (size - MSG_HEADER_SIZE);
 		available = btSerial.available();
-		if (available >= remaining) {
-			// Copy in rest to buffer to make up a complete message
-			count = btSerial.readBytes(buff + MSG_HEADER_SIZE, remaining);
-			if (!ValidateRead(remaining, count)) {
-				return;
-			}
-			// We now have an entire message
+		GetRemainingMsgFragment(available);
+	}
+}
 
 
+
+
+void GetRemainingMsgFragment(int available) {
+	if (available >= remaining) {
+		// Copy in rest to buffer to make up a complete message
+		size_t count = btSerial.readBytes(buff + currentPos, remaining);
+		currentPos += count;
+		if (!ValidateRead(remaining, count)) {
+			return;
 		}
+		// We now have an entire message. Validate the whole thing
+		if (!MsgHelpers::ValidateMessage(buff, currentPos)) {
+			ResetInBuff();
+			return;
+		}
+
+		ProcessInMsg(buff, 0);
+		// No need to move over any other bytes since we 
+		// only copied in number required from BT buffer
+		ResetInBuff();
 	}
 }
 
@@ -166,94 +186,132 @@ bool ValidateRead(int expected, int actual) {
 }
 
 
-void GetMsgFragment(int available) {
-
-}
-
-
+/// <summary>
+/// Validate that id is within expected range and data type is as expected. This
+/// is the sum of the contract between Dashboard setup and device
+/// </summary>
+/// <param name="buff"></param>
+/// <returns></returns>
 bool ValidateIds(uint8_t* buff) {
-	return
-		// Following is validating the range of incoming
-		// message IDs that you would have set in the dashboard
-		// This can vary by dashboard configuration
-		(*(buff + ID_POS) >= IN_MSG_ID_LED_RED_PIN) &&
-		(*(buff + ID_POS) <= IN_MSG_ID_PMW_PIN_Y);
+	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
+	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
+	switch (id) {
+	case IN_MSG_ID_LED_RED_PIN:
+	case IN_MSG_ID_LED_BLUE_PIN:
+		// Expecting a bool on/off message. Your implementation may vary
+		return dataType == typeBool;
+	case IN_MSG_ID_PMW_PIN_X:
+	case IN_MSG_ID_PMW_PIN_Y:
+		// expectin Uint 8 msg with values 0-255 for PWM on digital pin
+		// Your implementation can vary
+		return dataType == typeUInt8;
+	default:
+		return false;
+	}
 }
 
 
-void ProcessInMsg(uint8_t* buff, uint16_t size) {
+bool ProcessInMsg(uint8_t* buff, uint16_t size) {
 	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
 	switch (dataType) {
 	case typeBool:
 		MsgBool msgBool;
 		memcpy(&msgBool, buff, sizeof(MsgBool));
-		ApplyMsgBool(&msgBool);
-		break;
+		return ApplyMsgBool(&msgBool);
 	case typeInt8:
 		MsgInt8 msgInt8;
 		memcpy(&msgInt8, buff, sizeof(MsgInt8));
-		ApplyMsgInt8(&msgInt8);
-		break;
+		return ApplyMsgInt8(&msgInt8);
 	case typeUInt8:
 		MsgUInt8 msgUInt8;
 		memcpy(&msgUInt8, buff, sizeof(MsgUInt8));
-		ApplyMsgUInt8(&msgUInt8);
-		break;
+		return ApplyMsgUInt8(&msgUInt8);
 	case typeInt16:
 		MsgInt16 msgInt16;
 		memcpy(&msgInt16, buff, sizeof(MsgInt16));
-		ApplyMsgInt16(&msgInt16);
-		break;
+		return ApplyMsgInt16(&msgInt16);
 	case typeUInt16:
 		MsgUInt16 msgUInt16;
 		memcpy(&msgUInt16, buff, sizeof(MsgUInt16));
-		ApplyMsgUInt16(&msgUInt16);
-		break;
+		return ApplyMsgUInt16(&msgUInt16);
 	case typeInt32:
 		MsgInt32 msgInt32;
 		memcpy(&msgInt32, buff, sizeof(MsgInt32));
-		ApplyMsgInt32(&msgInt32);
-		break;
+		return ApplyMsgInt32(&msgInt32);
 	case typeUInt32:
 		MsgUInt32 msgUInt32;
 		memcpy(&msgUInt32, buff, sizeof(MsgUInt32));
-		ApplyMsgUInt32(&msgUInt32);
-		break;
+		return ApplyMsgUInt32(&msgUInt32);
 	case typeFloat32:
 		MsgFloat32 msgFloat32;
 		memcpy(&msgFloat32, buff, sizeof(MsgFloat32));
-		ApplyMsgFloat32(&msgFloat32);
-		break;
+		return ApplyMsgFloat32(&msgFloat32);
 	case typeUndefined:
 	case typeInvalid:
 	default:
-		break;
+		// Should never happen, previously validate
+		return false;
 	}
 }
 
 
-void ApplyMsgBool(MsgBool* obj) {
+bool ApplyMsgBool(MsgBool* msg) {
+	switch (msg->Id) {
+	case IN_MSG_ID_LED_RED_PIN:
+		digitalWrite(LED_RED_PIN, msg->Value ? HIGH : LOW);
+		return true;
+	case IN_MSG_ID_LED_BLUE_PIN:
+		digitalWrite(LED_BLUE_PIN, msg->Value ? HIGH : LOW);
+		return true;
+	default:
+		return false;
+	}
 }
 
-void ApplyMsgUInt8(MsgUInt8* obj) {
+
+bool ApplyMsgUInt8(MsgUInt8* msg) {
+	// Analog writes from 0 - 255 (8 bits), so we use UInt8
+	// Reads from 0 - 1023 (10 bits)
+	switch (msg->Id) {
+	case IN_MSG_ID_PMW_PIN_X:
+		analogWrite(PMW_PIN_X, msg->Value);
+		return true;
+	case IN_MSG_ID_PMW_PIN_Y:
+		analogWrite(PMW_PIN_Y, msg->Value);
+		return true;
+	default:
+		return false;
+	}
 }
 
-void ApplyMsgInt8(MsgInt8* obj) {
+bool ApplyMsgInt8(MsgInt8* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
-void ApplyMsgUInt16(MsgUInt16* obj) {
+bool ApplyMsgUInt16(MsgUInt16* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
-void ApplyMsgInt16(MsgInt16* obj) {
+bool ApplyMsgInt16(MsgInt16* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
-void ApplyMsgUInt32(MsgUInt32* obj) {
+bool ApplyMsgUInt32(MsgUInt32* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
-void ApplyMsgInt32(MsgInt32* obj) {
+bool ApplyMsgInt32(MsgInt32* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
-void ApplyMsgFloat32(MsgFloat32* obj) {
+bool ApplyMsgFloat32(MsgFloat32* msg) {
+	// Put in for demo completion. Not used in this implementation
+	return true;
 }
 
 

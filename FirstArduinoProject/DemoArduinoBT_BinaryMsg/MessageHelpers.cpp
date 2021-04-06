@@ -38,15 +38,18 @@ MsgDataType MsgHelpers::GetDataTypeFromHeader(uint8_t* buff) {
 }
 
 
+uint8_t MsgHelpers::GetIdFromHeader(uint8_t* buff) {
+	return (MsgDataType)(*(buff + ID_POS));
+}
+
+
 bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
 	if (MsgHelpers::ValidateHeader(buff)) {
-		uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
+		return MsgHelpers::GetSizeFromHeader(buff) == length;
 	}
 	return false;
-
-	// TODO Complete
-
 }
+
 
 byte MsgHelpers::GetPayloadSize(MsgDataType dt) {
 	switch (dt) {
