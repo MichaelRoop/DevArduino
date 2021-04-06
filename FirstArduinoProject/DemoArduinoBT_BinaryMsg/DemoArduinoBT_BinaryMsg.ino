@@ -241,7 +241,8 @@ bool ChatterFiltered(int current, int* last, uint8_t pinId) {
 
 // Use any of the following with the specified messge to send info to Dashboard
 void SendBoolMsg(uint8_t id, bool value) {
-	//MsgBool mb
+	MsgBool mb(id, value);
+	SendMsg(&outFloat, outFloat.Size);
 }
 
 void SendInt8Msg(uint8_t id, int8_t value) {
@@ -305,10 +306,10 @@ void SendTemperature(int sensorValue) {
 //
 //	MsgBool b;
 //	MsgInt8 i8;
-//	MsgUInt8 u8;
 //	MsgInt16 i16;
-//	MsgUInt16 u16;
 //	MsgInt32 i32;
+//	MsgUInt8 u8;
+//	MsgUInt16 u16;
 //	MsgUInt32 u32;
 //
 //	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.print(b.Size); Serial.print(" - "); Serial.println(sizeof(b));
@@ -319,6 +320,28 @@ void SendTemperature(int sensorValue) {
 //	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.print(i32.Size); Serial.print(" - "); Serial.println(sizeof(i32));
 //	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.print(u32.Size); Serial.print(" - "); Serial.println(sizeof(u32));
 //	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.print(f.Size); Serial.print(" - "); Serial.println(sizeof(f));
+//
+//	Serial.println("\n\n");
+//	MsgBool bx(1, true);
+//	MsgInt8 i8x(2, -12);
+//	MsgInt16 i16x(4, -13);
+//	MsgInt32 i32x(6, -14);
+//	MsgUInt8 u8x(3, 15);
+//	MsgUInt16 u16x(5, 16);
+//	MsgUInt32 u32x(7, 17);
+//	MsgFloat32 fx(7, 187.77);
+//
+//	Serial.print("   bool: "); Serial.print(bx.DataType); Serial.print(" - "); Serial.print(bx.Size); Serial.print(" : "); Serial.println(bx.Value);
+//	Serial.print("   Int8: "); Serial.print(i8x.DataType); Serial.print(" - "); Serial.print(i8x.Size); Serial.print(" : "); Serial.println(i8x.Value);
+//	Serial.print("  Int16: "); Serial.print(i16x.DataType); Serial.print(" - "); Serial.print(i16x.Size); Serial.print(" : "); Serial.println(i16x.Value);
+//	Serial.print("  Int32: "); Serial.print(i32x.DataType); Serial.print(" - "); Serial.print(i32x.Size); Serial.print(" : "); Serial.println(i32x.Value);
+//	Serial.print("  UInt8: "); Serial.print(u8x.DataType); Serial.print(" - "); Serial.print(u8x.Size); Serial.print(" : "); Serial.println(u8x.Value);
+//	Serial.print(" UInt16: "); Serial.print(u16x.DataType); Serial.print(" - "); Serial.print(u16x.Size); Serial.print(" : "); Serial.println(u16x.Value);
+//	Serial.print(" UInt32: "); Serial.print(u32x.DataType); Serial.print(" - "); Serial.print(u32x.Size); Serial.print(" : "); Serial.println(u32x.Value);
+//	Serial.print("Float32: "); Serial.print(fx.DataType); Serial.print(" - "); Serial.print(fx.Size); Serial.print(" : "); Serial.println(fx.Value);
+//
+//
+//
 //}
 
 #endif // !SECTION_DBG

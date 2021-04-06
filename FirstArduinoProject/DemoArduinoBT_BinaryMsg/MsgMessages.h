@@ -19,7 +19,20 @@ public:
 	uint8_t EOT = _EOT;
 
 	MsgBinary();
+	MsgBinary(uint8_t id, T value);
+private:
+	void Init();
 };
+
+//// Declare specializations on the Init
+template<> void MsgBinary<bool>::Init();
+template<> void MsgBinary<int8_t>::Init();
+template<> void MsgBinary<int16_t>::Init();
+template<> void MsgBinary<int32_t>::Init();
+template<> void MsgBinary<uint8_t>::Init();
+template<> void MsgBinary<uint16_t>::Init();
+template<> void MsgBinary<uint32_t>::Init();
+template<> void MsgBinary<float>::Init();
 
 // Declare specializations on the constructor
 template<> MsgBinary<bool>::MsgBinary();
@@ -30,6 +43,16 @@ template<> MsgBinary<uint8_t>::MsgBinary();
 template<> MsgBinary<uint16_t>::MsgBinary();
 template<> MsgBinary<uint32_t>::MsgBinary();
 template<> MsgBinary<float>::MsgBinary();
+
+template<> MsgBinary<bool>::MsgBinary(uint8_t id, bool value);
+template<> MsgBinary<int8_t>::MsgBinary(uint8_t id, int8_t value);
+template<> MsgBinary<int16_t>::MsgBinary(uint8_t id, int16_t value);
+template<> MsgBinary<int32_t>::MsgBinary(uint8_t id, int32_t value);
+template<> MsgBinary<uint8_t>::MsgBinary(uint8_t id, uint8_t value);
+template<> MsgBinary<uint16_t>::MsgBinary(uint8_t id, uint16_t value);
+template<> MsgBinary<uint32_t>::MsgBinary(uint8_t id, uint32_t value);
+template<> MsgBinary<float>::MsgBinary(uint8_t id, float value);
+
 
 // Create Packed typedefs
 __attribute__((packed)) typedef MsgBinary<bool> MsgBool;
