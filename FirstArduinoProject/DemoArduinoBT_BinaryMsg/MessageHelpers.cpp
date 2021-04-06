@@ -1,9 +1,8 @@
 // 
 // 
 // 
-
-#include "MessageHelpers.h"
 #include "MsgDefines.h"
+#include "MessageHelpers.h"
 
 uint8_t MsgHelpers::inMsgIds[MAX_IN_ID_REG][2];
 uint8_t MsgHelpers::currentIdListNextPos;
@@ -144,19 +143,11 @@ uint8_t MsgHelpers::GetIdFromHeader(uint8_t* buff) {
 
 bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
 	if (MsgHelpers::ValidateHeader(buff, length)) {
-		return MsgHelpers::GetSizeFromHeader(buff) == length;
+		if (MsgHelpers::GetSizeFromHeader(buff) == length) {
+			return RaiseRegisteredEvents(buff);
+		}
 	}
 	return false;
-}
-
-void MsgHelpers::Execute() {
-	// TODO just for testing
-	if (ptrBool != NULL) {
-		ptrBool(32, true);
-	}
-	if (ptrUInt8 != NULL) {
-		ptrUInt8(22, 101);
-	}
 }
 
 

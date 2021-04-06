@@ -3,12 +3,6 @@
 #ifndef _MSGMESSAGES_h
 #define _MSGMESSAGES_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
-	#include "WProgram.h"
-#endif
-
 #include "MsgDefines.h"
 #include "MsgEnumerations.h"
 

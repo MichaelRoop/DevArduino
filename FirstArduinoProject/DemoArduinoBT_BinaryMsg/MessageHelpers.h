@@ -3,12 +3,7 @@
 #ifndef _MESSAGEHELPERS_h
 #define _MESSAGEHELPERS_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
-	#include "WProgram.h"
-#endif
-
+#include "MsgDefines.h"
 #include "MsgEnumerations.h"
 
 #define MAX_IN_ID_REG 25
@@ -40,9 +35,6 @@ public:
 
 	// Validate the entire message after it is read
 	static bool ValidateMessage(uint8_t* buff, int length);
-
-	// TODO - remove test only
-	static void Execute();
 
 	static void RegisterFuncBool(msgFuncPtrBool ptr);
 	static void RegisterFuncInt8(msgFuncPtrInt8 ptr);

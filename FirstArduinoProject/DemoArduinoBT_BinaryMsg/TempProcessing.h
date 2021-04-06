@@ -3,11 +3,7 @@
 #ifndef _TEMPPROCESSING_h
 #define _TEMPPROCESSING_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
-	#include "WProgram.h"
-#endif
+#include "MsgDefines.h"
 
 class TemperatureProcessor
 {

@@ -3,11 +3,11 @@
 #ifndef _MSGDEFINES_h
 #define _MSGDEFINES_h
 
-//#if defined(ARDUINO) && ARDUINO >= 100
-//	#include "arduino.h"
-//#else
-//	#include "WProgram.h"
-//#endif
+#if defined(ARDUINO) && ARDUINO >= 100
+	#include "arduino.h"
+#else
+	#include "WProgram.h"
+#endif
 
 // Start of heading, start of text
 #define _SOH 0x01
