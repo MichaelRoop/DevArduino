@@ -45,13 +45,13 @@ int lastA1Value;
 MsgFloat32 outFloat;
 
 // Process the temperature
-TemperatureProcessor tempProcessor;
+TemperatureProcessor temperatureProcessor;
 
 // In buffer. Currently largest message is 12 bytes. We can just copy to 
 // A specific message in a function to avoid reserving that memory
 uint8_t buff[IN_BUFF_SIZE];
 uint8_t currentPos = 0;
-uint16_t remaining = 0;
+uint16_t currentRemaining = 0;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
@@ -59,6 +59,7 @@ SoftwareSerial btSerial(5, 4); //RX,TX
 
 #endif // !SECTION_VARIABLES
 
+#ifndef SECTION_ARDUINO_FUNCTIONS
 
 void setup() {
 	Serial.begin(115200);
@@ -76,6 +77,7 @@ void loop() {
 	delay(10);
 }
 
+#endif // !SECTION_ARDUINO_FUNCTIONS
 
 #ifndef SECTION_PRIVATE_HELPERS
 
@@ -100,9 +102,22 @@ void Initialize() {
 void ResetInBuff() {
 	memset(buff, 0, IN_BUFF_SIZE);
 	currentPos = 0;
-	remaining = 0;
+	currentRemaining = 0;
 }
 
+
+// Purge all in the app buffer and Bluetooth serial buffer
+void PurgeBuffAndBT() {
+	int available = btSerial.available();
+	if (available > 0) {
+		btSerial.readBytes(buff, available);
+	}
+	ResetInBuff();
+}
+
+#endif // !SECTION_PRIVATE_HELPERS
+
+#ifndef SECTION_INCOMING_MSGS
 
 void ListenForData() {
 	int available = btSerial.available();
@@ -122,45 +137,37 @@ void GetNewMsg(int available) {
 	if (available >= MSG_HEADER_SIZE) {
 		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
 		if (!ValidateRead(MSG_HEADER_SIZE, currentPos)) {
+			// TODO purge anything else in BT buffer
 			return;
 		}
 
 		if (!MsgHelpers::ValidateHeader(buff)) {
-			ResetInBuff();
+			PurgeBuffAndBT();
 			Serial.println("Bad header data");
 			return;
 		}
 
 		if (!ValidateIds(buff)) {
-			ResetInBuff();
-			Serial.println("Bad header data");
-			return;
-		}
-
-		uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
-		if (size == 0) {
-			ResetInBuff();
-			Serial.println("Bad msg size");
+			PurgeBuffAndBT();
+			Serial.println("Bad Id data");
 			return;
 		}
 
 		// Determine how many more bytes needed to complete the
 		// message. Check if bytes already available in BT buff
-		remaining = (size - MSG_HEADER_SIZE);
-		available = btSerial.available();
-		GetRemainingMsgFragment(available);
+		uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
+		currentRemaining = (size - MSG_HEADER_SIZE);
+		GetRemainingMsgFragment(btSerial.available());
 	}
 }
 
 
-
-
 void GetRemainingMsgFragment(int available) {
-	if (available >= remaining) {
+	if (available >= currentRemaining) {
 		// Copy in rest to buffer to make up a complete message
-		size_t count = btSerial.readBytes(buff + currentPos, remaining);
+		size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
 		currentPos += count;
-		if (!ValidateRead(remaining, count)) {
+		if (!ValidateRead(currentRemaining, count)) {
 			return;
 		}
 		// We now have an entire message. Validate the whole thing
@@ -179,19 +186,15 @@ void GetRemainingMsgFragment(int available) {
 
 bool ValidateRead(int expected, int actual) {
 	if (actual != expected) {
-		ResetInBuff();
+		PurgeBuffAndBT();
 		Serial.println("Bad read");
 	}
 	return true;
 }
 
 
-/// <summary>
-/// Validate that id is within expected range and data type is as expected. This
-/// is the sum of the contract between Dashboard setup and device
-/// </summary>
-/// <param name="buff"></param>
-/// <returns></returns>
+// Validate that id is within expected range and data type is as expected. This
+// is the sum of the contract between Dashboard setup and device
 bool ValidateIds(uint8_t* buff) {
 	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
 	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
@@ -284,37 +287,45 @@ bool ApplyMsgUInt8(MsgUInt8* msg) {
 	}
 }
 
+
 bool ApplyMsgInt8(MsgInt8* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
+
 
 bool ApplyMsgUInt16(MsgUInt16* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
 
+
 bool ApplyMsgInt16(MsgInt16* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
+
 
 bool ApplyMsgUInt32(MsgUInt32* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
 
+
 bool ApplyMsgInt32(MsgInt32* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
+
 
 bool ApplyMsgFloat32(MsgFloat32* msg) {
 	// Put in for demo completion. Not used in this implementation
 	return true;
 }
 
+#endif // !SECTION_INCOMING_MSGS
 
+#ifndef SECTION_OUTGOING_MSGS
 
 // May have to put these in a stack where the send can happend when other sends complete
 void CheckForSendBackData() {
@@ -335,103 +346,30 @@ bool ChatterFiltered(int current, int* last, uint8_t pinId) {
 	return false;
 }
 
-#endif // !SECTION_PRIVATE_HELPERS
-
-#ifndef SECTION_INPUT_MSG_HELPERS
-
-//bool ValidateIncomingMsg(size_t readCount) {
-//	if (readCount != sizeof(MsgStruct)) {
-//		Serial.println("Misread in bytes");
-//		return false;
-//	}
-//
-//	// Validate the packet
-//	if (inMsg.sDelimiter1 != SOH ||
-//		inMsg.sDelimiter2 != STX ||
-//		inMsg.eDelimiter1 != ETX ||
-//		inMsg.eDelimiter2 != EOT) {
-//		Serial.println("Delimiters not matching");
-//		return false;
-//	}
-//
-//	// Validate data type
-//	if (inMsg.dataType == 0 || inMsg.dataType >= typeInvalid) {
-//		Serial.println("Invalid data type");
-//		return false;
-//	}
-//	return true;
-//}
-
-
-//// Validate that the correct data type for incoming IO point ID
-//bool ValidateIncomingValue() {
-//	bool result = false;
-//	switch (inMsg.id) {
-//	case LED_RED_PIN_ID:
-//	case LED_BLUE_PIN_ID:
-//		// Arduino UNO digital pins. Validate data type
-//		result = inMsg.dataType = typeBool;
-//		break;
-//	case PMW_PIN_X_ID:
-//	case PMW_PIN_Y_ID:
-//		// UNO pins with PMW. Validate data type
-//		result = inMsg.dataType = typeUInt8;
-//		break;
-//		// TODO - add analog
-//	default:
-//		Serial.print("Unhandled ID:"); Serial.println(inMsg.id);
-//		return false;
-//	}
-//
-//	if (result == false) {
-//		Serial.print("Type:"); Serial.print(inMsg.dataType); Serial.print(" invalid for Id:"); Serial.print(inMsg.id);
-//	}
-//	return result;
-//}
-
-
-//// Apply the value to the correct IO
-//void ApplyInMsgToIO() {
-//	switch (inMsg.id) {
-//	case LED_RED_PIN_ID:
-//		digitalWrite(LED_RED_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
-//		break;
-//	case LED_BLUE_PIN_ID:
-//		digitalWrite(LED_BLUE_PIN, (inMsg.value.boolVal == true) ? HIGH : LOW);
-//		break;
-//	case 3:
-//		analogWrite(PMW_PIN_X, inMsg.value.uint8Val);
-//		break;
-//	case 4:
-//		analogWrite(PMW_PIN_Y, inMsg.value.uint8Val);
-//		break;
-//		// TODO Add analog
-//	default:
-//		// Should never happen. Already validated
-//		break;
-//	}
-//}
-
-#endif // !SECTION_INPUT_MSG_HELPERS
-
-#ifndef SECTION_OUTPUT_MSG_HELPERS
 
 //void SendBoolMsg(uint8_t id, bool value) {
-//	outMsg.id = id;
-//	outMsg.dataType = typeBool;
-//	outMsg.value.boolVal = value;
-//	SendMsg(typeBool);
 //}
-//
-//
-//void SendInt16Msg(uint8_t id, int value) {
-//	outMsg.id = id;
-//	outMsg.dataType = typeInt16;
-//	outMsg.value.int16Val = (int16_t)value;
-//	SendMsg(typeInt16);
+
+//void SendInt8Msg(uint8_t id, int8_t value) {
 //}
-//
-//
+
+//void SendInt16Msg(uint8_t id, int16_t value) {
+//}
+
+//void SendInt32Msg(uint8_t id, int32_t value) {
+//}
+
+//void SendUInt8Msg(uint8_t id, uint8_t value) {
+//}
+
+//void SendUInt16Msg(uint8_t id, uint16_t value) {
+//}
+
+//void SendUInt32Msg(uint8_t id, uint32_t value) {
+//}
+
+
+
 void SendFloatMsg(uint8_t id, float value) {
 	outFloat.Id = id;
 	outFloat.Value = value;
@@ -440,90 +378,23 @@ void SendFloatMsg(uint8_t id, float value) {
 }
 
 
-//
-//
-//
-//void SendUint32Msg(uint8_t id, uint32_t value) {
-//	outMsg.id = id;
-//	outMsg.dataType = typeInt32;
-//	outMsg.value.uint32Val = value;
-//	SendMsg(typeInt32);
-//}
-
-
-
 void SendMsg(void* msg, int size) {
 	size_t sent = btSerial.write((uint8_t*)msg, size);
 	//Serial.print("Size sent:"); Serial.println(sent);
 }
 
 
-//void SendMsg(uint8_t dataType) {
-//	DbgDumpOutMsg(dataType);
-//	size_t sent = btSerial.write((uint8_t*)&outMsg, sizeof(MsgStruct));
-//	//Serial.print("Size sent:"); Serial.println(sent);
-//}
-
-//<template typename T>
-//void DbgDumpOutMsg<T>(MsgBinary<T> msg) {
-//
-//}
-
-
-
-//void DbgDumpOutMsg(uint8_t dataType) {
-//	//Serial.println("");
-//	//Serial.print("sDel1:"); Serial.println(outMsg.sDelimiter1);
-//	//Serial.print("sDel2:"); Serial.println(outMsg.sDelimiter2);
-//	//Serial.print("   Id:"); Serial.println(outMsg.id);
-//	//// The demo just sends back int16 so we will dump that value
-//	//Serial.print(" Type:"); Serial.println(outMsg.dataType);
-//	//Serial.print("Value:"); Serial.println(outMsg.value.int16Val);
-//	//Serial.print("eDel1:"); Serial.println(outMsg.eDelimiter1);
-//	//Serial.print("eDel2:"); Serial.println(outMsg.eDelimiter2);
-//
-//
-//	Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); 
-//
-//	switch (dataType) {
-//	case typeBool:
-//		Serial.println(outMsg.value.boolVal);
-//		break;
-//	case typeUInt16:
-//		Serial.println(outMsg.value.int16Val);
-//		break;
-//	case typeInt32:
-//		Serial.println(outMsg.value.int32Val);
-//		break;
-//	case typeFloat32:
-//		Serial.println(outMsg.value.floatVal);
-//		break;
-//	default:
-//		Serial.print("UNHANDLED for type:"); Serial.println(dataType);
-//		break;
-//	}
-//
-//	//Serial.print("Id:"); Serial.print(outMsg.id); Serial.print(", Value:"); Serial.println(outMsg.value.int16Val);
-//
-//}
-
-
 // Convert raw sensor to temperature
 void SendTemperature(int sensorValue) {
-	tempProcessor.ProcessRaw(sensorValue);
-	SendFloatMsg(ANALOG_0_ID, tempProcessor.Celcius());
-
+	temperatureProcessor.ProcessRaw(sensorValue);
+	SendFloatMsg(ANALOG_0_ID, temperatureProcessor.Celcius());
 	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Kelvin());
 	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Farenheit());
-
-	//SendFloatMsg(ANALOG_0_ID, TemperatureKelvin(sensorValue));
-	//SendFloatMsg(ANALOG_0_ID, KelvinToCelcius(TemperatureKelvin(sensorValue)));
-	//SendFloatMsg(ANALOG_0_ID, KelvinToFarenheit(TemperatureKelvin(sensorValue)));
 }
 
-#endif // !SECTION_OUTPUT_MSG_HELPERS
+#endif // !SECTION_OUTGOING_MSGS
 
-
+#ifndef SECTION_DBG
 
 //void DbgMsgs() {
 //	MsgFloat32 f;
@@ -556,10 +427,7 @@ void SendTemperature(int sensorValue) {
 //	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.print(f.Size); Serial.print(" - "); Serial.println(sizeof(f));
 //}
 
-
-
-
-
+#endif // !SECTION_DBG
 
 
 

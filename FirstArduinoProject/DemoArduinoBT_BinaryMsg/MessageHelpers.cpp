@@ -16,8 +16,11 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff) {
 		// Get size and validate the number against the data type
 		MsgDataType dt = (MsgDataType)(*(buff + TYPE_POS));
 		uint16_t sizeField = MsgHelpers::GetSizeFromHeader(buff);
-		byte payloadSize = GetPayloadSize(dt);
-		isOk = (sizeField == MSG_HEADER_SIZE + MSG_FOOTER_SIZE + payloadSize);
+		isOk = sizeField > 0;
+		if (isOk) {
+			byte payloadSize = GetPayloadSize(dt);
+			isOk = (sizeField == MSG_HEADER_SIZE + MSG_FOOTER_SIZE + payloadSize);
+		}
 	}
 	return isOk;
 }
