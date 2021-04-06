@@ -53,5 +53,3 @@ template<> MsgBinary<float>::MsgBinary() {
 	Size = sizeof(MsgFloat32);
 }
 
-
-

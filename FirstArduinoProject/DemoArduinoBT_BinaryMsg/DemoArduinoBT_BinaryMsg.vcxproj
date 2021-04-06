@@ -119,6 +119,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MessageHelpers.h" />
     <ClInclude Include="MsgDefines.h" />
     <ClInclude Include="MsgEnumerations.h" />
     <ClInclude Include="MsgMessages.h" />
@@ -127,6 +128,7 @@
     <ClInclude Include="__vm\.DemoArduinoBT_BinaryMsg.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MessageHelpers.cpp" />
     <ClCompile Include="MsgMessages.cpp" />
     <ClCompile Include="TempProcessing.cpp" />
   </ItemGroup>

@@ -3,6 +3,7 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include "MessageHelpers.h"
 #include "MsgMessages.h"
 #include "TempProcessing.h"
 #include "MsgEnumerations.h"
@@ -43,12 +44,13 @@ int lastA1Value;
 // multiple outgoing IOs by changing the ID and Value before send
 MsgFloat32 outFloat;
 
+// Process the temperature
+TemperatureProcessor tempProcessor;
+
 // In buffer. Currently largest message is 12 bytes. We can just copy to 
 // A specific message in a function to avoid reserving that memory
 uint8_t buff[IN_BUFF_SIZE];
 uint8_t currentPos = 0;
-
-TemperatureProcessor tempProcessor;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
@@ -64,7 +66,6 @@ void setup() {
 	while (!btSerial) {	}
 	Serial.println("BT ready");
 	Initialize();
-
 	//DbgMsgs();
 }
 
@@ -105,62 +106,73 @@ void ListenForData() {
 	int available = btSerial.available();
 	if (available > 0) {
 		if (currentPos == 0) {
-			// New message arriving
-			if (available >= MSG_HEADER_SIZE) {
-				size_t count = btSerial.readBytes(buff, MSG_HEADER_SIZE);
-				if (count == MSG_HEADER_SIZE) {
-					if (ValidateHeader(buff)) {
-						uint16_t size = GetSizeFromHeader(buff);
-						if (size > 0) {
-							uint16_t remaining = size - MSG_HEADER_SIZE;
-							available = btSerial.available();
-							if (available >= remaining) {
-								// Copy in rest to buffer to make up complete message
-								count = btSerial.readBytes(buff + MSG_HEADER_SIZE, remaining);
-								if (count == remaining) {
-
-								}
-								else {
-									ResetInBuff();
-									Serial.println("Bad remaining read");
-								}
-							}
-						}
-						else {
-							ResetInBuff();
-							Serial.println("Bad msg size");
-						}
-					}
-				}
-				else {
-					ResetInBuff();
-					Serial.println("Bad header read");
-				}
-
-
-
-
-				//	ResetInMsg();
-				//	if (ValidateIncomingMsg(btSerial.readBytes((uint8_t*)&inMsg, sizeof(MsgStruct)))) {
-				//		if (ValidateIncomingValue()) {
-				//			ApplyInMsgToIO();
-				//		}
-				//	}
-			}
+			GetNewMsg(available);
 		}
 		else {
-			// another message part arriving
+			GetMsgFragment(available);
+		}
+	}
+}
+
+void GetNewMsg(int available) {
+	// New message arriving. Don't pick up until the entire header is arrived
+	if (available >= MSG_HEADER_SIZE) {
+		size_t count = btSerial.readBytes(buff, MSG_HEADER_SIZE);
+		if (!ValidateRead(MSG_HEADER_SIZE, count)) {
+			return;
+		}
+
+		if (!MsgHelpers::ValidateHeader(buff)) {
+			ResetInBuff();
+			Serial.println("Bad header data");
+			return;
+		}
+
+		if (!ValidateIds(buff)) {
+			ResetInBuff();
+			Serial.println("Bad header data");
+			return;
+		}
+
+		uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
+		if (size == 0) {
+			ResetInBuff();
+			Serial.println("Bad msg size");
+			return;
+		}
+
+		uint16_t remaining = size - MSG_HEADER_SIZE;
+		available = btSerial.available();
+		if (available >= remaining) {
+			// Copy in rest to buffer to make up a complete message
+			count = btSerial.readBytes(buff + MSG_HEADER_SIZE, remaining);
+			if (!ValidateRead(remaining, count)) {
+				return;
+			}
+			// We now have an entire message
+
+
 		}
 	}
 }
 
 
-bool ValidateHeader(uint8_t* buff) {
+bool ValidateRead(int expected, int actual) {
+	if (actual != expected) {
+		ResetInBuff();
+		Serial.println("Bad read");
+	}
+	return true;
+}
+
+
+void GetMsgFragment(int available) {
+
+}
+
+
+bool ValidateIds(uint8_t* buff) {
 	return
-		(*(buff + SOH_POS) == _SOH) &&
-		(*(buff + STX_POS) == _STX) &&
-		(*(buff + TYPE_POS) > typeUndefined) &&
-		(*(buff + TYPE_POS) < typeInvalid) &&
 		// Following is validating the range of incoming
 		// message IDs that you would have set in the dashboard
 		// This can vary by dashboard configuration
@@ -169,14 +181,79 @@ bool ValidateHeader(uint8_t* buff) {
 }
 
 
-uint16_t GetSizeFromHeader(uint8_t* buff) {
-	uint16_t size = 0;
-	memcpy(&size, (buff + SIZE_POS), sizeof(uint16_t));
-	// Message size must be at least big enough for header, footer and 1 byte payload
-	if (size <= (MSG_HEADER_SIZE + MSG_FOOTER_SIZE + 1)) {
-		size = 0;
+void ProcessInMsg(uint8_t* buff, uint16_t size) {
+	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
+	switch (dataType) {
+	case typeBool:
+		MsgBool msgBool;
+		memcpy(&msgBool, buff, sizeof(MsgBool));
+		ApplyMsgBool(&msgBool);
+		break;
+	case typeInt8:
+		MsgInt8 msgInt8;
+		memcpy(&msgInt8, buff, sizeof(MsgInt8));
+		ApplyMsgInt8(&msgInt8);
+		break;
+	case typeUInt8:
+		MsgUInt8 msgUInt8;
+		memcpy(&msgUInt8, buff, sizeof(MsgUInt8));
+		ApplyMsgUInt8(&msgUInt8);
+		break;
+	case typeInt16:
+		MsgInt16 msgInt16;
+		memcpy(&msgInt16, buff, sizeof(MsgInt16));
+		ApplyMsgInt16(&msgInt16);
+		break;
+	case typeUInt16:
+		MsgUInt16 msgUInt16;
+		memcpy(&msgUInt16, buff, sizeof(MsgUInt16));
+		ApplyMsgUInt16(&msgUInt16);
+		break;
+	case typeInt32:
+		MsgInt32 msgInt32;
+		memcpy(&msgInt32, buff, sizeof(MsgInt32));
+		ApplyMsgInt32(&msgInt32);
+		break;
+	case typeUInt32:
+		MsgUInt32 msgUInt32;
+		memcpy(&msgUInt32, buff, sizeof(MsgUInt32));
+		ApplyMsgUInt32(&msgUInt32);
+		break;
+	case typeFloat32:
+		MsgFloat32 msgFloat32;
+		memcpy(&msgFloat32, buff, sizeof(MsgFloat32));
+		ApplyMsgFloat32(&msgFloat32);
+		break;
+	case typeUndefined:
+	case typeInvalid:
+	default:
+		break;
 	}
-	return size;
+}
+
+
+void ApplyMsgBool(MsgBool* obj) {
+}
+
+void ApplyMsgUInt8(MsgUInt8* obj) {
+}
+
+void ApplyMsgInt8(MsgInt8* obj) {
+}
+
+void ApplyMsgUInt16(MsgUInt16* obj) {
+}
+
+void ApplyMsgInt16(MsgInt16* obj) {
+}
+
+void ApplyMsgUInt32(MsgUInt32* obj) {
+}
+
+void ApplyMsgInt32(MsgInt32* obj) {
+}
+
+void ApplyMsgFloat32(MsgFloat32* obj) {
 }
 
 
@@ -184,14 +261,14 @@ uint16_t GetSizeFromHeader(uint8_t* buff) {
 // May have to put these in a stack where the send can happend when other sends complete
 void CheckForSendBackData() {
 	// In our demo, a KY-013 temperature sensor is attached to Analog pin A0
-	if (DebounceValue(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
+	if (ChatterFiltered(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
 		SendTemperature(lastA0Value);
 	}
-	//DebounceValue(analogRead(A1), &lastA1Value, ANALOG_1_ID);
+	//ChatterFiltered(analogRead(A1), &lastA1Value, ANALOG_1_ID);
 }
 
 
-bool DebounceValue(int current, int* last, uint8_t pinId) {
+bool ChatterFiltered(int current, int* last, uint8_t pinId) {
 	if ((current - ANALOG_DEBOUNCE_GAP) > *last ||
 		(current + ANALOG_DEBOUNCE_GAP) < *last) {
 		*last = current;

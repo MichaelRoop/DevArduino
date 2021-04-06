@@ -47,6 +47,5 @@ __attribute__((packed)) typedef MsgBinary<uint16_t> MsgUInt16;
 __attribute__((packed)) typedef MsgBinary<uint32_t> MsgUInt32;
 __attribute__((packed)) typedef MsgBinary<float> MsgFloat32;
 
-
 #endif
 
