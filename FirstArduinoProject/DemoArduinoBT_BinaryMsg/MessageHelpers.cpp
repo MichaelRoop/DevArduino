@@ -10,13 +10,21 @@ uint8_t MsgHelpers::currentIdListNextPos;
 
 // TODO - remove - record of how to use when not typedef
 //void (*MsgHelpers::MyBoolFunc) (bool) = NULL;
-MsgHelpers::boolMsgFuncPtr MsgHelpers::MyBoolFunc = NULL;
-
+MsgHelpers::msgFuncPtrBool MsgHelpers::ptrBool = NULL;
+MsgHelpers::msgFuncPtrInt8 MsgHelpers::ptrInt8 = NULL;
+MsgHelpers::msgFuncPtrInt16 MsgHelpers::ptrInt16 = NULL;
+MsgHelpers::msgFuncPtrInt32 MsgHelpers::ptrInt32 = NULL;
+MsgHelpers::msgFuncPtrUInt8 MsgHelpers::ptrUInt8 = NULL;
+MsgHelpers::msgFuncPtrUInt16 MsgHelpers::ptrUInt16 = NULL;
+MsgHelpers::msgFuncPtrUInt32 MsgHelpers::ptrUInt32 = NULL;
+MsgHelpers::msgFuncPtrFloat32 MsgHelpers::ptrFloat32 = NULL;
+MsgHelpers::errEventPtr MsgHelpers::errCallback = NULL;
 
 MsgHelpers::MsgHelpers() {
 	MsgHelpers::currentIdListNextPos = 0;
 }
 
+#ifndef SECTION_PUBLIC_METHODS
 
 bool MsgHelpers::RegisterInIds(uint8_t id, MsgDataType dataType) {
 	if (MsgHelpers::currentIdListNextPos < MAX_IN_ID_REG) {
@@ -28,6 +36,53 @@ bool MsgHelpers::RegisterInIds(uint8_t id, MsgDataType dataType) {
 	}
 	return false;
 }
+
+
+void MsgHelpers::RegisterErrCallback(errEventPtr ptr) {
+	MsgHelpers::errCallback = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncBool(msgFuncPtrBool ptr) {
+	MsgHelpers::ptrBool = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncInt8(msgFuncPtrInt8 ptr) {
+	MsgHelpers::ptrInt8 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncInt16(msgFuncPtrInt16 ptr) {
+	MsgHelpers::ptrInt16 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncInt32(msgFuncPtrInt32 ptr) {
+	MsgHelpers::ptrInt32 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncUInt8(msgFuncPtrUInt8 ptr) {
+	MsgHelpers::ptrUInt8 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncUInt16(msgFuncPtrUInt16 ptr) {
+	MsgHelpers::ptrUInt16 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncUInt32(msgFuncPtrUInt32 ptr) {
+	MsgHelpers::ptrUInt32 = ptr;
+}
+
+
+void MsgHelpers::RegisterFuncFloat32(msgFuncPtrFloat32 ptr) {
+	MsgHelpers::ptrFloat32 = ptr;
+}
+
+#endif // !SECTION_PUBLIC_METHODS
 
 
 bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
@@ -95,13 +150,139 @@ bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
 }
 
 void MsgHelpers::Execute() {
-	// TODO this will be replaced with an internal method which fires by registered id
-	MyBoolFunc(true);
+	// TODO just for testing
+	if (ptrBool != NULL) {
+		ptrBool(32, true);
+	}
+	if (ptrUInt8 != NULL) {
+		ptrUInt8(22, 101);
+	}
 }
 
 
-void MsgHelpers::RegisterBoolFunc(uint8_t id, boolMsgFuncPtr ptr) {
-	MyBoolFunc = ptr;
+void MsgHelpers::RaiseError(MsgError err) {
+	if (MsgHelpers::errCallback != NULL) {
+		MsgHelpers::errCallback(err);
+	}
+}
+
+
+bool MsgHelpers::RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrBool != NULL) {
+		bool bVal;
+		memcpy(&bVal, (buff + offset), sizeof(bool));
+		ptrBool(id, bVal);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrInt8 != NULL) {
+		int8_t val;
+		memcpy(&val, (buff + offset), sizeof(int8_t));
+		ptrInt8(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseInt16(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrInt16 != NULL) {
+		int16_t val;
+		memcpy(&val, (buff + offset), sizeof(int16_t));
+		ptrInt16(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseInt32(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrInt32 != NULL) {
+		int32_t val;
+		memcpy(&val, (buff + offset), sizeof(int32_t));
+		ptrInt32(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseUInt8(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrUInt8 != NULL) {
+		uint8_t val;
+		memcpy(&val, (buff + offset), sizeof(uint8_t));
+		ptrUInt8(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseUInt16(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrUInt16 != NULL) {
+		uint16_t val;
+		memcpy(&val, (buff + offset), sizeof(uint16_t));
+		ptrUInt16(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseUInt32(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrUInt32 != NULL) {
+		uint32_t val;
+		memcpy(&val, (buff + offset), sizeof(uint32_t));
+		ptrUInt32(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+bool MsgHelpers::RaiseFloat32(uint8_t id, uint8_t* buff, uint8_t offset) {
+	if (ptrFloat32 != NULL) {
+		float val;
+		memcpy(&val, (buff + offset), sizeof(float));
+		ptrFloat32(id, val);
+		return true;
+	}
+	return false;
+}
+
+
+
+bool MsgHelpers::RaiseRegisteredEvents(uint8_t* buff) {
+	uint8_t offset = VALUE_POS;
+	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
+	switch (MsgHelpers::GetDataTypeFromHeader(buff)) {
+	case typeBool:
+		return RaiseBool(id, buff, offset);
+	case typeInt8:
+		return RaiseInt8(id, buff, offset);
+	case typeUInt8:
+		return RaiseUInt8(id, buff, offset);
+	case typeInt16:
+		return RaiseInt16(id, buff, offset);
+	case typeUInt16:
+		return RaiseUInt16(id, buff, offset);
+	case typeInt32:
+		return RaiseInt32(id, buff, offset);
+	case typeUInt32:
+		return RaiseUInt32(id, buff, offset);
+	case typeFloat32:
+		return RaiseFloat32(id, buff, offset);
+	case typeUndefined:
+	case typeInvalid:
+	default:
+		// Should not happen raise err and return true to avoid unregietered error
+		RaiseError(err_InvalidType);
+		return true;
+	}
 }
 
 

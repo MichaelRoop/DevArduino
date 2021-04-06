@@ -26,6 +26,7 @@
 #define SIZE_POS 2
 #define TYPE_POS 4
 #define ID_POS 5
+#define VALUE_POS 6
 
 
 #endif

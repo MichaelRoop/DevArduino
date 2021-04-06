@@ -24,6 +24,12 @@ enum MsgDataType {
 	typeInvalid = 9
 };
 
+enum MsgError {
+	err_CallbackNotRegistered = 0,
+	err_InvalidType = 1
+
+};
+
 
 #endif
 

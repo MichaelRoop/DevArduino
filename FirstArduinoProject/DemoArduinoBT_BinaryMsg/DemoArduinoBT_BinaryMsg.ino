@@ -110,14 +110,18 @@ void Initialize() {
 	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_X, typeUInt8);
 	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_Y, typeUInt8);
 
-
-	MsgHelpers::RegisterBoolFunc(IN_MSG_ID_LED_BLUE_PIN, &MyTestBoolFunc);
-
+	// Will be raised from in message parsed if msg value is of certain type
+	// Register all required for your program
+	MsgHelpers::RegisterFuncBool(&ExecuteBoolValue);
+	MsgHelpers::RegisterFuncUInt8(&ExecuteUInt8Value);
+	MsgHelpers::RegisterErrCallback(&ErrCallback);
+	MsgHelpers::RegisterErrCallback(&ErrCallback);
 }
 
 
-void MyTestBoolFunc(bool value) {
-	Serial.print("My Function id pointer has been fired with value:"); Serial.println(value);
+
+void ErrCallback(MsgError err) {
+	Serial.print("Err callback fired with value:"); Serial.println(err);
 }
 
 
@@ -222,6 +226,43 @@ bool ProcessInMsgBuff(uint8_t* buff, uint16_t size) {
 		return false;
 	}
 }
+
+
+void ExecuteBoolValue(uint8_t id, bool value) {
+	Serial.print("ExecuteBoolValue id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
+	switch (id) {
+	case IN_MSG_ID_LED_RED_PIN:
+		digitalWrite(LED_RED_PIN, value ? HIGH : LOW);
+		break;
+	case IN_MSG_ID_LED_BLUE_PIN:
+		digitalWrite(LED_BLUE_PIN, value ? HIGH : LOW);
+		break;
+	default:
+		// TODO - error msg if desired
+		break;
+	}
+}
+
+
+void ExecuteUInt8Value(uint8_t id, uint8_t value) {
+	Serial.print("ExecuteUInt8Value id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
+
+	// Analog writes from 0 - 255 (8 bits), so we use UInt8
+	// Reads from 0 - 1023 (10 bits)
+	switch (id) {
+	case IN_MSG_ID_PMW_PIN_X:
+		analogWrite(PMW_PIN_X, value);
+		break;
+	case IN_MSG_ID_PMW_PIN_Y:
+		analogWrite(PMW_PIN_Y, value);
+		break;
+	default:
+		// TODO - error msg if desired
+		break;
+	}
+}
+
+
 
 
 bool ApplyMsgBool(MsgBool* msg) {

@@ -14,10 +14,17 @@
 #define MAX_IN_ID_REG 25
 
 class MsgHelpers {
-
-
+	// Typedefs for execute methods
+	typedef void (*msgFuncPtrBool)(uint8_t id, bool value);
+	typedef void (*msgFuncPtrInt8)(uint8_t id, int8_t value);
+	typedef void (*msgFuncPtrInt16)(uint8_t id, int16_t value);
+	typedef void (*msgFuncPtrInt32)(uint8_t id, int32_t value);
+	typedef void (*msgFuncPtrUInt8)(uint8_t id, uint8_t value);
+	typedef void (*msgFuncPtrUInt16)(uint8_t id, uint16_t value);
+	typedef void (*msgFuncPtrUInt32)(uint8_t id, uint32_t value);
+	typedef void (*msgFuncPtrFloat32)(uint8_t id, float value);
+	typedef void (*errEventPtr)(MsgError err);
 public:
-	typedef void (*boolMsgFuncPtr)(bool value);
 
 	// Register in message ids and expected data type for validation
 	static bool RegisterInIds(uint8_t id, MsgDataType dataType);
@@ -37,18 +44,45 @@ public:
 	// TODO - remove test only
 	static void Execute();
 
-	static void RegisterBoolFunc(uint8_t id, boolMsgFuncPtr ptr);
+	static void RegisterFuncBool(msgFuncPtrBool ptr);
+	static void RegisterFuncInt8(msgFuncPtrInt8 ptr);
+	static void RegisterFuncInt16(msgFuncPtrInt16 ptr);
+	static void RegisterFuncInt32(msgFuncPtrInt32 ptr);
+	static void RegisterFuncUInt8(msgFuncPtrUInt8 ptr);
+	static void RegisterFuncUInt16(msgFuncPtrUInt16 ptr);
+	static void RegisterFuncUInt32(msgFuncPtrUInt32 ptr);
+	static void RegisterFuncFloat32(msgFuncPtrFloat32 ptr);
+	static void RegisterErrCallback(errEventPtr ptr);
 
 private:
-	// TODO - replace. Will have an array of them to register
-	static boolMsgFuncPtr MyBoolFunc;
+	static msgFuncPtrBool ptrBool;
+	static msgFuncPtrInt8 ptrInt8;
+	static msgFuncPtrInt16 ptrInt16;
+	static msgFuncPtrInt32 ptrInt32;
+	static msgFuncPtrUInt8 ptrUInt8;
+	static msgFuncPtrUInt16 ptrUInt16;
+	static msgFuncPtrUInt32 ptrUInt32;
+	static msgFuncPtrFloat32 ptrFloat32;
+	static errEventPtr errCallback;
+	// Each entry has id,data type. Used for validation
+	static uint8_t inMsgIds[MAX_IN_ID_REG][2];
+	static uint8_t currentIdListNextPos;
 
 	MsgHelpers();
 	static uint8_t GetIdFromHeader(uint8_t* buff);
 	static byte GetPayloadSize(MsgDataType dt);
-	// Each entry has id,data type. Used for validation
-	static uint8_t inMsgIds[MAX_IN_ID_REG][2];
-	static uint8_t currentIdListNextPos;
+	static void RaiseError(MsgError err);
+	static bool RaiseRegisteredEvents(uint8_t* buff);
+	static bool RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseInt16(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseInt32(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseUInt8(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseUInt16(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseUInt32(uint8_t id, uint8_t* buff, uint8_t offset);
+	static bool RaiseFloat32(uint8_t id, uint8_t* buff, uint8_t offset);
+
+
 };
 
 #endif
