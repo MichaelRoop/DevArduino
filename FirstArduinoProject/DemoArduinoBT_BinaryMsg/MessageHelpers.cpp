@@ -5,7 +5,36 @@
 #include "MessageHelpers.h"
 #include "MsgDefines.h"
 
-bool MsgHelpers::ValidateHeader(uint8_t* buff) {
+uint8_t MsgHelpers::inMsgIds[MAX_IN_ID_REG][2];
+uint8_t MsgHelpers::currentIdListNextPos;
+
+// TODO - remove - record of how to use when not typedef
+//void (*MsgHelpers::MyBoolFunc) (bool) = NULL;
+MsgHelpers::boolMsgFuncPtr MsgHelpers::MyBoolFunc = NULL;
+
+
+MsgHelpers::MsgHelpers() {
+	MsgHelpers::currentIdListNextPos = 0;
+}
+
+
+bool MsgHelpers::RegisterInIds(uint8_t id, MsgDataType dataType) {
+	if (MsgHelpers::currentIdListNextPos < MAX_IN_ID_REG) {
+		if (dataType > typeUndefined && dataType < typeInvalid) {
+			inMsgIds[currentIdListNextPos][0] = id;
+			inMsgIds[currentIdListNextPos][1] = dataType;
+			MsgHelpers::currentIdListNextPos++;
+		}
+	}
+	return false;
+}
+
+
+bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
+	if (size < MSG_HEADER_SIZE) {
+		return false;
+	}
+
 	bool isOk =
 		(*(buff + SOH_POS) == _SOH) &&
 		(*(buff + STX_POS) == _STX) &&
@@ -20,6 +49,18 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff) {
 		if (isOk) {
 			byte payloadSize = GetPayloadSize(dt);
 			isOk = (sizeField == MSG_HEADER_SIZE + MSG_FOOTER_SIZE + payloadSize);
+		}
+		if (isOk) {
+			bool tmp = false;
+			uint8_t id = MsgHelpers::GetIdFromHeader(buff);
+			// validate id and expected data type
+			for (int i = 0; i < MsgHelpers::currentIdListNextPos; i++) {
+				if (MsgHelpers::inMsgIds[i][0] == id) {
+					tmp = (MsgHelpers::inMsgIds[i][1] == dt);
+					break;
+				}
+			}
+			isOk = tmp;
 		}
 	}
 	return isOk;
@@ -47,10 +88,20 @@ uint8_t MsgHelpers::GetIdFromHeader(uint8_t* buff) {
 
 
 bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
-	if (MsgHelpers::ValidateHeader(buff)) {
+	if (MsgHelpers::ValidateHeader(buff, length)) {
 		return MsgHelpers::GetSizeFromHeader(buff) == length;
 	}
 	return false;
+}
+
+void MsgHelpers::Execute() {
+	// TODO this will be replaced with an internal method which fires by registered id
+	MyBoolFunc(true);
+}
+
+
+void MsgHelpers::RegisterBoolFunc(uint8_t id, boolMsgFuncPtr ptr) {
+	MyBoolFunc = ptr;
 }
 
 

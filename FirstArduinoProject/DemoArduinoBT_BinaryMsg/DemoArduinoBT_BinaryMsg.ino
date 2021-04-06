@@ -31,7 +31,8 @@
 // Analog debounce limit
 #define ANALOG_DEBOUNCE_GAP 5
 
-#define IN_BUFF_SIZE 20
+// We never copy in more than the max current message size of 12
+#define IN_BUFF_SIZE 15
 
 #endif // !SECTION_DEFINES
 
@@ -69,6 +70,8 @@ void setup() {
 	Serial.println("BT ready");
 	Initialize();
 	//DbgMsgs();
+
+	MsgHelpers::Execute();
 }
 
 void loop() {
@@ -96,7 +99,27 @@ void Initialize() {
 	lastA0Value = 0xFFFFFFFF;
 	lastA1Value = 0xFFFFFFFF;
 	ResetInBuff();
+
+	//-------------------------------------------------------------
+	// Register expected id/data type combination for incoming msgs
+	// Expecting bool to turn LED on or off
+	MsgHelpers::RegisterInIds(IN_MSG_ID_LED_BLUE_PIN, typeBool);
+	MsgHelpers::RegisterInIds(IN_MSG_ID_LED_RED_PIN, typeBool);
+
+	// Expectin Uint 8 msg with values 0-255 for PWM on digital pin
+	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_X, typeUInt8);
+	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_Y, typeUInt8);
+
+
+	MsgHelpers::RegisterBoolFunc(IN_MSG_ID_LED_BLUE_PIN, &MyTestBoolFunc);
+
 }
+
+
+void MyTestBoolFunc(bool value) {
+	Serial.print("My Function id pointer has been fired with value:"); Serial.println(value);
+}
+
 
 
 void ResetInBuff() {
@@ -120,14 +143,11 @@ void PurgeBuffAndBT() {
 #ifndef SECTION_INCOMING_MSGS
 
 void ListenForData() {
-	int available = btSerial.available();
-	if (available > 0) {
-		if (currentPos == 0) {
-			GetNewMsg(available);
-		}
-		else {
-			GetRemainingMsgFragment(available);
-		}
+	if (currentPos == 0) {
+		GetNewMsg(btSerial.available());
+	}
+	else {
+		GetRemainingMsgFragment(btSerial.available());
 	}
 }
 
@@ -136,85 +156,31 @@ void ListenForData() {
 void GetNewMsg(int available) {
 	if (available >= MSG_HEADER_SIZE) {
 		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
-		if (!ValidateRead(MSG_HEADER_SIZE, currentPos)) {
-			// TODO purge anything else in BT buffer
-			return;
+		if (MsgHelpers::ValidateHeader(buff, currentPos)) {
+			currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
 		}
-
-		if (!MsgHelpers::ValidateHeader(buff)) {
+		else {
 			PurgeBuffAndBT();
 			Serial.println("Bad header data");
-			return;
 		}
-
-		if (!ValidateIds(buff)) {
-			PurgeBuffAndBT();
-			Serial.println("Bad Id data");
-			return;
-		}
-
-		// Determine how many more bytes needed to complete the
-		// message. Check if bytes already available in BT buff
-		uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
-		currentRemaining = (size - MSG_HEADER_SIZE);
-		GetRemainingMsgFragment(btSerial.available());
 	}
 }
 
 
+// Get enough bytes to make a completed message and process result
 void GetRemainingMsgFragment(int available) {
 	if (available >= currentRemaining) {
-		// Copy in rest to buffer to make up a complete message
 		size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
 		currentPos += count;
-		if (!ValidateRead(currentRemaining, count)) {
-			return;
+		if (MsgHelpers::ValidateMessage(buff, currentPos)) {
+			ProcessInMsgBuff(buff, 0);
 		}
-		// We now have an entire message. Validate the whole thing
-		if (!MsgHelpers::ValidateMessage(buff, currentPos)) {
-			ResetInBuff();
-			return;
-		}
-
-		ProcessInMsg(buff, 0);
-		// No need to move over any other bytes since we 
-		// only copied in number required from BT buffer
 		ResetInBuff();
 	}
 }
 
 
-bool ValidateRead(int expected, int actual) {
-	if (actual != expected) {
-		PurgeBuffAndBT();
-		Serial.println("Bad read");
-	}
-	return true;
-}
-
-
-// Validate that id is within expected range and data type is as expected. This
-// is the sum of the contract between Dashboard setup and device
-bool ValidateIds(uint8_t* buff) {
-	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
-	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
-	switch (id) {
-	case IN_MSG_ID_LED_RED_PIN:
-	case IN_MSG_ID_LED_BLUE_PIN:
-		// Expecting a bool on/off message. Your implementation may vary
-		return dataType == typeBool;
-	case IN_MSG_ID_PMW_PIN_X:
-	case IN_MSG_ID_PMW_PIN_Y:
-		// expectin Uint 8 msg with values 0-255 for PWM on digital pin
-		// Your implementation can vary
-		return dataType == typeUInt8;
-	default:
-		return false;
-	}
-}
-
-
-bool ProcessInMsg(uint8_t* buff, uint16_t size) {
+bool ProcessInMsgBuff(uint8_t* buff, uint16_t size) {
 	MsgDataType dataType = MsgHelpers::GetDataTypeFromHeader(buff);
 	switch (dataType) {
 	case typeBool:
