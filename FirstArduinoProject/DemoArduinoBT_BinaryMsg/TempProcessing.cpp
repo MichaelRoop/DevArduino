@@ -3,8 +3,18 @@
 // 
 #include "TempProcessing.h"
 
+TemperatureProcessor::TemperatureProcessor(int sensorValue) {
+	this->Init();
+	this->ProcessRaw(sensorValue);
+}
+
 
 TemperatureProcessor::TemperatureProcessor() {
+	this->Init();
+}
+
+
+void TemperatureProcessor::Init() {
 	this->R1 = 10000;
 	// steinhart-hart coeficients for thermistor
 	this->c1 = 0.001129148;

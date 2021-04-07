@@ -39,11 +39,11 @@
 #ifndef SECTION_VARIABLES
 
 int lastA0Value;
-//int lastA1Value;
 
 // Just have the types you need in your application. One can be used for 
 // multiple outgoing IOs by changing the ID and Value before send
 MsgFloat32 outFloat;
+MsgBool outBool;
 
 // Process the temperature
 TemperatureProcessor temperatureProcessor;
@@ -52,7 +52,7 @@ TemperatureProcessor temperatureProcessor;
 // A specific message in a function to avoid reserving that memory
 uint8_t buff[IN_BUFF_SIZE];
 uint8_t currentPos = 0;
-uint16_t currentRemaining = 0;
+uint8_t currentRemaining = 0;
 
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
@@ -67,7 +67,7 @@ void setup() {
 	while (!Serial) { }
 	btSerial.begin(38400);
 	while (!btSerial) {	}
-	Serial.println("BT ready");
+	Serial.println("...");
 	Initialize();
 	//DbgMsgs();
 	//MsgHelpers::Execute();
@@ -96,7 +96,6 @@ void Initialize() {
 
 	// Analog read values. Out of range forces first value to send
 	lastA0Value = 0xFFFFFFFF;
-	//lastA1Value = 0xFFFFFFFF;
 	ResetInBuff();
 
 	//-------------------------------------------------------------
@@ -156,7 +155,6 @@ void GetNewMsg(int available) {
 		}
 		else {
 			PurgeBuffAndBT();
-			Serial.println("Bad header data");
 		}
 	}
 }
@@ -225,7 +223,6 @@ void CheckForSendBackData() {
 	if (ChatterFiltered(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
 		SendTemperature(lastA0Value);
 	}
-	//ChatterFiltered(analogRead(A1), &lastA1Value, ANALOG_1_ID);
 }
 
 
@@ -238,11 +235,12 @@ bool ChatterFiltered(int current, int* last, uint8_t pinId) {
 	return false;
 }
 
-
+/*
 // Use any of the following with the specified messge to send info to Dashboard
 void SendBoolMsg(uint8_t id, bool value) {
-	MsgBool mb(id, value);
-	SendMsg(&outFloat, outFloat.Size);
+	outBool.Id = id;
+	outBool.Value = value;
+	SendMsg(&outBool, outBool.Size);
 }
 
 void SendInt8Msg(uint8_t id, int8_t value) {
@@ -262,8 +260,7 @@ void SendUInt16Msg(uint8_t id, uint16_t value) {
 
 void SendUInt32Msg(uint8_t id, uint32_t value) {
 }
-
-
+*/
 
 void SendFloatMsg(uint8_t id, float value) {
 	outFloat.Id = id;

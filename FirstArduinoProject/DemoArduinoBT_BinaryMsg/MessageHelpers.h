@@ -63,7 +63,7 @@ private:
 	MsgHelpers();
 	static uint8_t GetIdFromHeader(uint8_t* buff);
 	static byte GetPayloadSize(MsgDataType dt);
-	static void RaiseError(MsgError err);
+	static bool RaiseError(MsgError err);
 	static bool RaiseRegisteredEvents(uint8_t* buff);
 	static bool RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset);
