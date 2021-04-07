@@ -89,7 +89,7 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
 		return MsgHelpers::RaiseError(err_InvalidHeaderSize);
 	}
 
-	if ((*(buff + SOH_POS) != _SOH) || (*(buff + STX_POS) == _STX)) {
+	if ((*(buff + SOH_POS) != _SOH) || (*(buff + STX_POS) != _STX)) {
 		return MsgHelpers::RaiseError(err_StartDelimiters);
 	}
 
@@ -125,8 +125,8 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
 uint16_t MsgHelpers::GetSizeFromHeader(uint8_t* buff) {
 	uint16_t size = 0;
 	memcpy(&size, (buff + SIZE_POS), sizeof(uint16_t));
-	// Message size must be at least big enough for header, footer and 1 byte payload
-	if (size <= (MSG_HEADER_SIZE + MSG_FOOTER_SIZE + 1)) {
+	// Message size must be at least big enough for header, footer and minimum 1 byte payload
+	if (size < (MSG_HEADER_SIZE + MSG_FOOTER_SIZE + 1)) {
 		size = 0;
 	}
 	return size;

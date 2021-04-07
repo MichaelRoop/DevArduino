@@ -180,7 +180,7 @@ void ErrCallback(MsgError err) {
 
 
 void CallbackBoolValue(uint8_t id, bool value) {
-	//Serial.print("ExecuteBoolValue id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
+	Serial.print("ExecuteBoolValue id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
 	switch (id) {
 	case IN_MSG_ID_LED_RED_PIN:
 		digitalWrite(LED_RED_PIN, value ? HIGH : LOW);
