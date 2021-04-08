@@ -109,16 +109,19 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
 		return MsgHelpers::RaiseError(err_InvalidPayloadSizeField);
 	}
 
-	bool ok = false;
 	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
 	// validate id and expected data type
 	for (int i = 0; i < MsgHelpers::currentIdListNextPos; i++) {
+		// Found registered ID
 		if (MsgHelpers::inMsgIds[i][0] == id) {
-			ok = (MsgHelpers::inMsgIds[i][1] == dt);
-			break;
+			if (MsgHelpers::inMsgIds[i][1] == dt) {
+				return true;
+			}
+			// Msg data type not same as registered for ID
+			MsgHelpers::RaiseError(err_InvalidDataTypeForRegisteredId);
 		}
 	}
-	return ok ? true : MsgHelpers::RaiseError(err_InvalidDataTypeForRegisteredId);
+	return MsgHelpers::RaiseError(err_CallbackNotRegisteredForId);
 }
 
 

@@ -76,7 +76,6 @@ void setup() {
 void loop() {
 	ListenForData();
 	CheckForSendBackData();
-	delay(10);
 }
 
 #endif // !SECTION_ARDUINO_FUNCTIONS
@@ -108,7 +107,7 @@ void Initialize() {
 	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_X, typeUInt8);
 	MsgHelpers::RegisterInIds(IN_MSG_ID_PMW_PIN_Y, typeUInt8);
 
-	// Will be raised from in message parsed if msg value is of certain type
+	// Will be raised from parsed incoming message if msg value is of certain type
 	// Register all you require for your program
 	MsgHelpers::RegisterFuncBool(&CallbackBoolValue);
 	MsgHelpers::RegisterFuncUInt8(&CallbackUint8Value);
@@ -180,7 +179,7 @@ void ErrCallback(MsgError err) {
 
 
 void CallbackBoolValue(uint8_t id, bool value) {
-	Serial.print("ExecuteBoolValue id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
+	Serial.print("bool-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
 	switch (id) {
 	case IN_MSG_ID_LED_RED_PIN:
 		digitalWrite(LED_RED_PIN, value ? HIGH : LOW);
@@ -196,7 +195,8 @@ void CallbackBoolValue(uint8_t id, bool value) {
 
 
 void CallbackUint8Value(uint8_t id, uint8_t value) {
-	//Serial.print("ExecuteUInt8Value id:"); Serial.print(id); Serial.print(" Value:"); Serial.println(value);
+	// Debug only 
+	Serial.print("U8-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
 	// Analog writes from 0 - 255 (8 bits), so we use UInt8
 	// Reads from 0 - 1023 (10 bits)
 	switch (id) {

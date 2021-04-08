@@ -20,13 +20,14 @@ enum MsgDataType {
 
 
 enum MsgError {
-	err_CallbackNotRegistered = 0,
+	err_NoErr = 0,
 	err_InvalidType = 1,
 	err_InvalidHeaderSize = 2,
 	err_StartDelimiters = 3,
 	err_InvalidSizeField = 4,
 	err_InvalidPayloadSizeField = 5,
-	err_InvalidDataTypeForRegisteredId = 6
+	err_InvalidDataTypeForRegisteredId = 6,
+	err_CallbackNotRegisteredForId = 7
 };
 
 
