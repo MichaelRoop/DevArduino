@@ -173,8 +173,46 @@ void GetRemainingMsgFragment(int available) {
 
 #ifndef SECTION_CALLBACKS
 
+
+//#define VERBOSE_DEBUG 1
 void ErrCallback(MsgError err) {
-	Serial.print("Err:"); Serial.println(err);
+	// TODO - send msg back to client
+	Serial.print("Err:"); Serial.print(err);
+#ifdef VERBOSE_DEBUG
+	switch (err) {
+	case err_NoErr:
+		Serial.println(" no err");
+		break;
+	case err_InvalidType:
+		Serial.println(" Invalid data type");
+		break;
+	case err_InvalidHeaderSize:
+		Serial.println(" Invalid header size");
+		break;
+	case err_StartDelimiters:
+		Serial.println(" Err with start delimiters");
+		break;
+	case err_InvalidSizeField:
+		Serial.println(" Invalid msg size value");
+		break;
+	case err_InvalidPayloadSizeField:
+		Serial.println(" Bad payload size value");
+		break;
+	case err_InvalidDataTypeForRegisteredId:
+		Serial.println(" Invalid data type for msg ID");
+		break;
+	case err_CallbackNotRegisteredForId:
+		Serial.println(" No callback for msg ID");
+		break;
+	default:
+		Serial.println(" Unhandled");
+		break;
+	}
+
+#else
+	Serial.println("");
+#endif // VERBOSE_DEBUG
+
 }
 
 
