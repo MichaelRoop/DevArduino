@@ -32,18 +32,20 @@
 #define ANALOG_DEBOUNCE_GAP 5
 
 // We never copy in more than the max current message size of 12
-#define IN_BUFF_SIZE 15
+#define IN_BUFF_SIZE 30
 
 #endif // !SECTION_DEFINES
 
 #ifndef SECTION_VARIABLES
 
 int lastA0Value;
+int lastPinX;
 
 // Just have the types you need in your application. One can be used for 
 // multiple outgoing IOs by changing the ID and Value before send
 MsgFloat32 outFloat;
 MsgBool outBool;
+MsgUInt8 outUint8;
 
 // Process the temperature
 TemperatureProcessor temperatureProcessor;
@@ -65,7 +67,9 @@ SoftwareSerial btSerial(5, 4); //RX,TX
 void setup() {
 	Serial.begin(115200);
 	while (!Serial) { }
-	btSerial.begin(38400);
+	// Must set the baud via an AT command AT+BAUD=115200,1,0
+	btSerial.begin(115200);
+
 	while (!btSerial) {	}
 	Serial.println("...");
 	Initialize();
@@ -95,6 +99,7 @@ void Initialize() {
 
 	// Analog read values. Out of range forces first value to send
 	lastA0Value = 0xFFFFFFFF;
+	lastPinX = 0xFFFFFFFF;
 	ResetInBuff();
 
 	//-------------------------------------------------------------
@@ -148,11 +153,27 @@ void ListenForData() {
 // New message arriving. Don't pick up until the entire header is in BT buffer
 void GetNewMsg(int available) {
 	if (available >= MSG_HEADER_SIZE) {
+		//Serial.print("GetNewMsg:"); Serial.println(available);
 		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
 		if (MsgHelpers::ValidateHeader(buff, currentPos)) {
 			currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
+			if (btSerial.available() >= currentRemaining) {
+				GetRemainingMsgFragment(btSerial.available());
+			}
 		}
 		else {
+
+			Serial.print("GetNewMsgERR- currentPos:"); Serial.println(currentPos);
+			Serial.print("---:");
+			Serial.print(buff[0]); Serial.print(",");
+			Serial.print(buff[1]); Serial.print(",");
+			Serial.print(buff[2]); Serial.print(",");
+			Serial.print(buff[3]); Serial.print(",");
+			Serial.print(buff[4]); Serial.print(",");
+			Serial.print(buff[5]); Serial.print(",");
+			Serial.print(buff[6]); Serial.print(",");
+			Serial.println(buff[8]);
+
 			PurgeBuffAndBT();
 		}
 	}
@@ -163,6 +184,7 @@ void GetNewMsg(int available) {
 void GetRemainingMsgFragment(int available) {
 	if (available >= currentRemaining) {
 		size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
+		//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
 		currentPos += count;
 		MsgHelpers::ValidateMessage(buff, currentPos);
 		ResetInBuff();
@@ -177,7 +199,7 @@ void GetRemainingMsgFragment(int available) {
 //#define VERBOSE_DEBUG 1
 void ErrCallback(MsgError err) {
 	// TODO - send msg back to client
-	Serial.print("Err:"); Serial.print(err);
+	Serial.print("----Err:"); Serial.print(err);
 #ifdef VERBOSE_DEBUG
 	switch (err) {
 	case err_NoErr:
@@ -234,12 +256,14 @@ void CallbackBoolValue(uint8_t id, bool value) {
 
 void CallbackUint8Value(uint8_t id, uint8_t value) {
 	// Debug only 
-	Serial.print("U8-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
+	//Serial.print("U8-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
 	// Analog writes from 0 - 255 (8 bits), so we use UInt8
 	// Reads from 0 - 1023 (10 bits)
 	switch (id) {
 	case IN_MSG_ID_PMW_PIN_X:
 		analogWrite(PMW_PIN_X, value);
+		// For demo, bounce back the value
+		SendUint8Msg(IN_MSG_ID_PMW_PIN_X, value);
 		break;
 	case IN_MSG_ID_PMW_PIN_Y:
 		analogWrite(PMW_PIN_Y, value);
@@ -261,6 +285,19 @@ void CheckForSendBackData() {
 	if (ChatterFiltered(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
 		SendTemperature(lastA0Value);
 	}
+
+
+	//if (ChatterFiltered(analogRead(PMW_PIN_X), &lastPinX, IN_MSG_ID_PMW_PIN_X)) {
+	//	SendUint8Msg(IN_MSG_ID_PMW_PIN_X, lastPinX);
+	//}
+	//int val = analogRead(PMW_PIN_X);
+	//if (val != lastPinX) {
+	//	lastPinX = val;
+	//	SendUint8Msg(IN_MSG_ID_PMW_PIN_X, val);
+	//}
+
+	// TODO - put the PWM 12 here
+
 }
 
 
@@ -305,6 +342,14 @@ void SendFloatMsg(uint8_t id, float value) {
 	outFloat.Value = value;
 	Serial.println(value);
 	SendMsg(&outFloat, outFloat.Size);
+}
+
+
+void SendUint8Msg(uint8_t id, uint8_t value) {
+	outUint8.Id = id;
+	outUint8.Value = value;
+	//Serial.println(value);
+	SendMsg(&outUint8, outUint8.Size);
 }
 
 

@@ -28,6 +28,8 @@
  * AT+ROLE		    +ROLE:0 (1=master, 0=slave)
  * AT+PSWD		    +PSWD:1234 (pairing PIN)
 
+ HC-05 supported baud rate: 9600,19200,38400,57600,115200,230400,460800.
+ However, there are multiple errors over 115,200 when running on an UNO
 
 
 */
@@ -50,7 +52,7 @@ void setup() {
      //Although we can set the default debug serial port higher 
      //9600 is adequate
     SetupCommunications(9600, 38400);
-    //SetupCommunications(9600, 115200);
+    //SetupCommunications(115200, 460800);
 }
 
 

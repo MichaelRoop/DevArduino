@@ -24,3 +24,4 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 /FirstArduinoProject/ArduinoWifi/Release/*
 /FirstArduinoProject/ArduinoWifi/__vm/Configuration.Release.vmps.xml
 /FirstArduinoProject/DemoArduinoBT_BinaryMsg/Release/*
+/ArduinoBluetoothCmdTests/Release/*
