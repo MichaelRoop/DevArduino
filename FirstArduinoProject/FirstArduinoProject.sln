@@ -67,8 +67,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DemoArduinoBLEAggregate", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DemoArduinoBT_BinaryMsg", "DemoArduinoBT_BinaryMsg\DemoArduinoBT_BinaryMsg.vcxproj", "{EEB93E41-9D69-4ED1-96DC-4EEA87A31B7A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AltSoftSerial-1.4", "C:\Users\Michael\Documents\Arduino\libraries\AltSoftSerial\AltSoftSerial-1.4.vcxitems", "{0B65538D-E68F-4A7A-B3B7-E39EDD50DD0D}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		C:\Users\Michael\Documents\Arduino\libraries\AltSoftSerial\AltSoftSerial-1.4.vcxitems*{0b65538d-e68f-4a7a-b3b7-e39edd50dd0d}*SharedItemsImports = 9
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{1573b6ec-6454-4aee-a383-631e65b71261}*SharedItemsImports = 9
 		C:\Users\Michael\Documents\Arduino\libraries\ArduinoBLE-pairing\ArduinoBLE-pairing-1.1.3.vcxitems*{1a2ef82f-6f49-4048-953f-3d2a272c2733}*SharedItemsImports = 4
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{29c2c5fa-31ea-4163-b341-0c4d641cb41b}*SharedItemsImports = 9
@@ -79,6 +82,7 @@ Global
 		ArduinoFileManager\ArduinoFileManager.vcxitems*{af17d64d-12e9-4679-98bd-207f699b7d93}*SharedItemsImports = 4
 		ArdDbgLogger\ArdDbgLogger.vcxitems*{bbd43745-d3b6-431f-906a-a8ee4ae4bac1}*SharedItemsImports = 4
 		C:\Users\Michael\Documents\Arduino\libraries\WiFiNINA\WiFiNINA-1.4.0.vcxitems*{d3cc7390-a4fa-41ac-a322-a3110d1d293c}*SharedItemsImports = 4
+		C:\Users\Michael\Documents\Arduino\libraries\AltSoftSerial\AltSoftSerial-1.4.vcxitems*{eeb93e41-9d69-4ed1-96dc-4eea87a31b7a}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM

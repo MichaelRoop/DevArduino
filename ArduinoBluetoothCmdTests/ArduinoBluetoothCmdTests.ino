@@ -31,7 +31,6 @@
  HC-05 supported baud rate: 9600,19200,38400,57600,115200,230400,460800.
  However, there are multiple errors over 115,200 when running on an UNO
 
-
 */
 #include <SoftwareSerial.h>
 

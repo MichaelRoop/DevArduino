@@ -3,6 +3,7 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+//#include <AltSoftSerial.h>
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 #include "MsgMessages.h"
@@ -59,6 +60,7 @@ uint8_t currentRemaining = 0;
 // The jumpers on BT board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
+
 
 #endif // !SECTION_VARIABLES
 
@@ -152,43 +154,52 @@ void ListenForData() {
 
 // New message arriving. Don't pick up until the entire header is in BT buffer
 void GetNewMsg(int available) {
-	if (available >= MSG_HEADER_SIZE) {
-		//Serial.print("GetNewMsg:"); Serial.println(available);
-		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
-		if (MsgHelpers::ValidateHeader(buff, currentPos)) {
-			currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
-			if (btSerial.available() >= currentRemaining) {
-				GetRemainingMsgFragment(btSerial.available());
+	//if (btSerial.overflow()) {
+	//	Serial.println("RX Overflow");
+	//}
+	//else {
+		if (available >= MSG_HEADER_SIZE) {
+			//Serial.print("GetNewMsg:"); Serial.println(available);
+			currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
+			if (MsgHelpers::ValidateHeader(buff, currentPos)) {
+				currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
+				if (btSerial.available() >= currentRemaining) {
+					GetRemainingMsgFragment(btSerial.available());
+				}
+			}
+			else {
+				//Serial.print("GetNewMsgERR- currentPos:"); Serial.println(currentPos);
+				//Serial.print("---:");
+				//Serial.print(buff[0]); Serial.print(",");
+				//Serial.print(buff[1]); Serial.print(",");
+				//Serial.print(buff[2]); Serial.print(",");
+				//Serial.print(buff[3]); Serial.print(",");
+				//Serial.print(buff[4]); Serial.print(",");
+				//Serial.print(buff[5]); Serial.print(",");
+				//Serial.print(buff[6]); Serial.print(",");
+				//Serial.println(buff[8]);
+
+				PurgeBuffAndBT();
 			}
 		}
-		else {
-
-			Serial.print("GetNewMsgERR- currentPos:"); Serial.println(currentPos);
-			Serial.print("---:");
-			Serial.print(buff[0]); Serial.print(",");
-			Serial.print(buff[1]); Serial.print(",");
-			Serial.print(buff[2]); Serial.print(",");
-			Serial.print(buff[3]); Serial.print(",");
-			Serial.print(buff[4]); Serial.print(",");
-			Serial.print(buff[5]); Serial.print(",");
-			Serial.print(buff[6]); Serial.print(",");
-			Serial.println(buff[8]);
-
-			PurgeBuffAndBT();
-		}
-	}
+	//}
 }
 
 
 // Get enough bytes to make a completed message and process result
 void GetRemainingMsgFragment(int available) {
-	if (available >= currentRemaining) {
-		size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
-		//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
-		currentPos += count;
-		MsgHelpers::ValidateMessage(buff, currentPos);
-		ResetInBuff();
-	}
+	//if (btSerial.overflow()) {
+	//	Serial.println("RX Overflow on fragment");
+	//}
+	//else {
+		if (available >= currentRemaining) {
+			size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
+			//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
+			currentPos += count;
+			MsgHelpers::ValidateMessage(buff, currentPos);
+			ResetInBuff();
+		}
+	//}
 }
 
 #endif // !SECTION_INCOMING_MSGS
@@ -199,7 +210,7 @@ void GetRemainingMsgFragment(int available) {
 //#define VERBOSE_DEBUG 1
 void ErrCallback(MsgError err) {
 	// TODO - send msg back to client
-	Serial.print("----Err:"); Serial.print(err);
+	//Serial.print("----Err:"); Serial.print(err);
 #ifdef VERBOSE_DEBUG
 	switch (err) {
 	case err_NoErr:
