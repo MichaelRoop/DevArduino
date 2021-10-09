@@ -207,43 +207,44 @@ void GetRemainingMsgFragment(int available) {
 #ifndef SECTION_CALLBACKS
 
 
-//#define VERBOSE_DEBUG 1
-void ErrCallback(MsgError err) {
+#define VERBOSE_DEBUG 1
+void ErrCallback(MsgError err, uint16_t val) {
 	// TODO - send msg back to client
 	//Serial.print("----Err:"); Serial.print(err);
 #ifdef VERBOSE_DEBUG
 	switch (err) {
 	case err_NoErr:
-		Serial.println(" no err");
+		Serial.print(" no err");
 		break;
 	case err_InvalidType:
-		Serial.println(" Invalid data type");
+		Serial.print(" Invalid data type");
 		break;
 	case err_InvalidHeaderSize:
-		Serial.println(" Invalid header size");
+		Serial.print(" Invalid header size");
 		break;
 	case err_StartDelimiters:
-		Serial.println(" Err with start delimiters");
+		Serial.print(" Err with start delimiters");
 		break;
 	case err_InvalidSizeField:
-		Serial.println(" Invalid msg size value");
+		Serial.print(" Invalid msg size value");
 		break;
 	case err_InvalidPayloadSizeField:
-		Serial.println(" Bad payload size value");
+		Serial.print(" Bad payload size value");
 		break;
 	case err_InvalidDataTypeForRegisteredId:
-		Serial.println(" Invalid data type for msg ID");
+		Serial.print(" Invalid data type for msg ID");
 		break;
 	case err_CallbackNotRegisteredForId:
-		Serial.println(" No callback for msg ID");
+		Serial.print(" No callback for msg ID");
 		break;
 	default:
-		Serial.println(" Unhandled");
+		Serial.print(" Unhandled");
 		break;
 	}
+	Serial.print(":"); Serial.println(val);
 
 #else
-	Serial.println("");
+	//Serial.println("");
 #endif // VERBOSE_DEBUG
 
 }

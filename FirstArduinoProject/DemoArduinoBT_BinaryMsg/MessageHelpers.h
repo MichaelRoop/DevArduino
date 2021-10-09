@@ -18,7 +18,7 @@ class MsgHelpers {
 	typedef void (*msgFuncPtrUInt16)(uint8_t id, uint16_t value);
 	typedef void (*msgFuncPtrUInt32)(uint8_t id, uint32_t value);
 	typedef void (*msgFuncPtrFloat32)(uint8_t id, float value);
-	typedef void (*errEventPtr)(MsgError err);
+	typedef void (*errEventPtr)(MsgError err, uint16_t);
 public:
 
 	// Register in message ids and expected data type for validation
@@ -63,7 +63,7 @@ private:
 	MsgHelpers();
 	static uint8_t GetIdFromHeader(uint8_t* buff);
 	static byte GetPayloadSize(MsgDataType dt);
-	static bool RaiseError(MsgError err);
+	static bool RaiseError(MsgError err, uint16_t val);
 	static bool RaiseRegisteredEvents(uint8_t* buff);
 	static bool RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset);
