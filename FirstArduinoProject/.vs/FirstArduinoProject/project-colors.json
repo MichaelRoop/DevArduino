@@ -1,0 +1,26 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "e63df182-7dfa-49b8-bb29-3d5625215cc0": {
+      "ProjectGuid": "e63df182-7dfa-49b8-bb29-3d5625215cc0",
+      "DisplayName": "DemoArduinoBLE",
+      "ColorIndex": 0
+    },
+    "eeb93e41-9d69-4ed1-96dc-4eea87a31b7a": {
+      "ProjectGuid": "eeb93e41-9d69-4ed1-96dc-4eea87a31b7a",
+      "DisplayName": "DemoArduinoBT_BinaryMsg",
+      "ColorIndex": 1
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "Miscellaneous Files",
+      "ColorIndex": -1
+    },
+    "2548f416-95c6-40c3-9f4d-cccbae0ab1b4": {
+      "ProjectGuid": "2548f416-95c6-40c3-9f4d-cccbae0ab1b4",
+      "DisplayName": "HardwareDebugTest",
+      "ColorIndex": 2
+    }
+  },
+  "NextColorIndex": 3
+}
