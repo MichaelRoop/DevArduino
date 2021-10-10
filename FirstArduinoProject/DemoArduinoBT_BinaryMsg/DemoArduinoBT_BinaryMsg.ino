@@ -55,7 +55,7 @@ uint8_t buff[IN_BUFF_SIZE];
 uint8_t currentPos = 0;
 uint8_t currentRemaining = 0;
 
-// The jumpers on BT board are set to 4TX and 5RX. 
+// The jumpers on Bluetooth board are set to 4TX and 5RX. 
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
 
@@ -69,9 +69,11 @@ void setup() {
 	while (!Serial) { }
 #endif // DEBUG
 
-	// Must set the baud via an AT command AT+UART=115200,1,0
-	btSerial.begin(115200); // corrupts data but I can recover
-	//btSerial.begin(57600);// not fast enough
+	// Must set the Bluetooth baud via an AT command AT+UART=115200,1,0
+	// otherwise it is not fast enough. SoftwareSerial does corrupts 
+	// data at that speed but I can recover. Better to route Bluetooth 
+	// to use a hardware serial port but this does for demo
+	btSerial.begin(115200); // 
 
 	while (!btSerial) {	}
 #ifdef DEBUG
@@ -79,8 +81,6 @@ void setup() {
 #endif // DEBUG
 
 	Initialize();
-	//DbgMsgs();
-	//MsgHelpers::Execute();
 }
 
 void loop() {
@@ -155,19 +155,7 @@ void PurgeBuffAndBT() {
 #ifndef SECTION_INCOMING_MSGS
 
 void ListenForData() {
-	/*
-	int available = btSerial.available();
-	if (available > 0) {
-		if (currentPos == 0) {
-			GetNewMsg(available);
-		}
-		else {
-			GetRemainingMsgFragment(available);
-		}
-	}
-	*/
-
-	// Try to change to loop through until nothing in buffer
+	// Loop through until nothing in buffer to minimize overflow
 	int available = btSerial.available();
 	while (available > 0) {
 		available = btSerial.available();
@@ -180,68 +168,54 @@ void ListenForData() {
 			}
 		}
 	}
-
-
 }
 
 
 // New message arriving. Don't pick up until the entire header is in BT buffer
 void GetNewMsg(int available) {
-	//if (btSerial.overflow()) {
-	//	Serial.println("RX Overflow");
-	//}
-	//else {
-		if (available >= MSG_HEADER_SIZE) {
-			//Serial.print("GetNewMsg:"); Serial.println(available);
-			currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
-			if (MsgHelpers::ValidateHeader(buff, currentPos)) {
-				currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
-				available = btSerial.available();
-				if (available >= currentRemaining) {
-					GetRemainingMsgFragment(available);
-				}
-			}
-			else {
-				//Serial.print("GetNewMsgERR- currentPos:"); Serial.println(currentPos);
-				//Serial.print("---:");
-				//Serial.print(buff[0]); Serial.print(",");
-				//Serial.print(buff[1]); Serial.print(",");
-				//Serial.print(buff[2]); Serial.print(",");
-				//Serial.print(buff[3]); Serial.print(",");
-				//Serial.print(buff[4]); Serial.print(",");
-				//Serial.print(buff[5]); Serial.print(",");
-				//Serial.print(buff[6]); Serial.print(",");
-				//Serial.println(buff[8]);
-
-				PurgeBuffAndBT();
+	if (available >= MSG_HEADER_SIZE) {
+		//Serial.print("GetNewMsg:"); Serial.println(available);
+		currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
+		if (MsgHelpers::ValidateHeader(buff, currentPos)) {
+			currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
+			available = btSerial.available();
+			if (available >= currentRemaining) {
+				GetRemainingMsgFragment(available);
 			}
 		}
-	//}
+		else {
+#ifdef DEBUG
+			Serial.print("GetNewMsgERR- currentPos:"); Serial.println(currentPos);
+			Serial.print("---:");
+			Serial.print(buff[0]); Serial.print(",");
+			Serial.print(buff[1]); Serial.print(",");
+			Serial.print(buff[2]); Serial.print(",");
+			Serial.print(buff[3]); Serial.print(",");
+			Serial.print(buff[4]); Serial.print(",");
+			Serial.print(buff[5]); Serial.print(",");
+			Serial.print(buff[6]); Serial.print(",");
+			Serial.println(buff[8]);
+#endif // DEBUG
+			PurgeBuffAndBT();
+		}
+	}
 }
 
 
 // Get enough bytes to make a completed message and process result
 void GetRemainingMsgFragment(int available) {
-	//if (btSerial.overflow()) {
-	//	Serial.println("RX Overflow on fragment");
-	//}
-	//else {
-		// TODO - only read MAX buff size at a time
-
-		if (available >= currentRemaining) {
-			size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
-			//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
-			currentPos += count;
-			bool result = MsgHelpers::ValidateMessage(buff, currentPos);
-			ResetInBuff();
-		}
-	//}
+	if (available >= currentRemaining) {
+		size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
+		//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
+		currentPos += count;
+		bool result = MsgHelpers::ValidateMessage(buff, currentPos);
+		ResetInBuff();
+	}
 }
 
 #endif // !SECTION_INCOMING_MSGS
 
 #ifndef SECTION_CALLBACKS
-
 
 #ifdef DEBUG
 void ErrCallback(ErrMsg* errMsg) {
@@ -331,8 +305,6 @@ void PrintErr(ErrMsg* msg) {
 #endif
 
 
-
-
 void CallbackBoolValue(uint8_t id, bool value) {
 	//Serial.print("bool-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
 	switch (id) {
@@ -356,8 +328,9 @@ void CallbackUint8Value(uint8_t id, uint8_t value) {
 	// Reads from 0 - 1023 (10 bits)
 	switch (id) {
 	case IN_MSG_ID_PMW_PIN_X:
+		// Write to pin
 		analogWrite(PMW_PIN_X, value);
-		// For demo, bounce back the value
+		// For demo, bounce back the new value
 		SendUint8Msg(IN_MSG_ID_PMW_PIN_X, value);
 		break;
 	case IN_MSG_ID_PMW_PIN_Y:
@@ -368,7 +341,6 @@ void CallbackUint8Value(uint8_t id, uint8_t value) {
 		break;
 	}
 }
-
 
 #endif // !SECTION_CALLBACKS
 
@@ -463,63 +435,5 @@ void SendTemperature(int sensorValue) {
 }
 
 #endif // !SECTION_OUTGOING_MSGS
-
-#ifndef SECTION_DBG
-
-//void DbgMsgs() {
-//	MsgFloat32 f;
-//	f.Id = 123;
-//	f.Value = 321.2;
-//	Serial.println(f.SOH);
-//	Serial.println(f.STX);
-//	Serial.println(f.Size);
-//	Serial.println(f.DataType);
-//	Serial.println(f.Id);
-//	Serial.println(f.Value);
-//	Serial.println(f.ETX);
-//	Serial.println(f.EOT);
-//
-//	MsgBool b;
-//	MsgInt8 i8;
-//	MsgInt16 i16;
-//	MsgInt32 i32;
-//	MsgUInt8 u8;
-//	MsgUInt16 u16;
-//	MsgUInt32 u32;
-//
-//	Serial.print("   bool: "); Serial.print(b.DataType); Serial.print(" - "); Serial.print(b.Size); Serial.print(" - "); Serial.println(sizeof(b));
-//	Serial.print("  UInt8: "); Serial.print(i8.DataType); Serial.print(" - "); Serial.print(i8.Size); Serial.print(" - "); Serial.println(sizeof(i8));
-//	Serial.print("   Int8: "); Serial.print(u8.DataType); Serial.print(" - "); Serial.print(u8.Size); Serial.print(" - "); Serial.println(sizeof(u8));
-//	Serial.print(" Uint16: "); Serial.print(i16.DataType); Serial.print(" - "); Serial.print(i16.Size); Serial.print(" - "); Serial.println(sizeof(i16));
-//	Serial.print("  Int16: "); Serial.print(u16.DataType); Serial.print(" - "); Serial.print(u16.Size); Serial.print(" - "); Serial.println(sizeof(u16));
-//	Serial.print(" UInt32: "); Serial.print(i32.DataType); Serial.print(" - "); Serial.print(i32.Size); Serial.print(" - "); Serial.println(sizeof(i32));
-//	Serial.print("  Int32: "); Serial.print(u32.DataType); Serial.print(" - "); Serial.print(u32.Size); Serial.print(" - "); Serial.println(sizeof(u32));
-//	Serial.print("Float32: "); Serial.print(f.DataType); Serial.print(" - "); Serial.print(f.Size); Serial.print(" - "); Serial.println(sizeof(f));
-//
-//	Serial.println("\n\n");
-//	MsgBool bx(1, true);
-//	MsgInt8 i8x(2, -12);
-//	MsgInt16 i16x(4, -13);
-//	MsgInt32 i32x(6, -14);
-//	MsgUInt8 u8x(3, 15);
-//	MsgUInt16 u16x(5, 16);
-//	MsgUInt32 u32x(7, 17);
-//	MsgFloat32 fx(7, 187.77);
-//
-//	Serial.print("   bool: "); Serial.print(bx.DataType); Serial.print(" - "); Serial.print(bx.Size); Serial.print(" : "); Serial.println(bx.Value);
-//	Serial.print("   Int8: "); Serial.print(i8x.DataType); Serial.print(" - "); Serial.print(i8x.Size); Serial.print(" : "); Serial.println(i8x.Value);
-//	Serial.print("  Int16: "); Serial.print(i16x.DataType); Serial.print(" - "); Serial.print(i16x.Size); Serial.print(" : "); Serial.println(i16x.Value);
-//	Serial.print("  Int32: "); Serial.print(i32x.DataType); Serial.print(" - "); Serial.print(i32x.Size); Serial.print(" : "); Serial.println(i32x.Value);
-//	Serial.print("  UInt8: "); Serial.print(u8x.DataType); Serial.print(" - "); Serial.print(u8x.Size); Serial.print(" : "); Serial.println(u8x.Value);
-//	Serial.print(" UInt16: "); Serial.print(u16x.DataType); Serial.print(" - "); Serial.print(u16x.Size); Serial.print(" : "); Serial.println(u16x.Value);
-//	Serial.print(" UInt32: "); Serial.print(u32x.DataType); Serial.print(" - "); Serial.print(u32x.Size); Serial.print(" : "); Serial.println(u32x.Value);
-//	Serial.print("Float32: "); Serial.print(fx.DataType); Serial.print(" - "); Serial.print(fx.Size); Serial.print(" : "); Serial.println(fx.Value);
-//
-//
-//
-//}
-
-#endif // !SECTION_DBG
-
 
 
