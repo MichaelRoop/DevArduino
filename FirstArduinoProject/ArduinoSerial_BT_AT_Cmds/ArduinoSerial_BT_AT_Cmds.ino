@@ -75,5 +75,6 @@ void SetupCommunications(long dbgBaud, long btBaud) {
     while (!Serial) {
         ; // wait for default serial port to connect. Needed for Native USB only
     }
+    Serial.println("Serial to BT started");
 }
 
