@@ -3,6 +3,8 @@
 #ifndef _MSGENUMERATIONS_h
 #define _MSGENUMERATIONS_h
 
+#include "MsgDefines.h"
+
 // Corresponds to data types on App
 enum MsgDataType {
 	typeUndefined = 0,
@@ -18,7 +20,7 @@ enum MsgDataType {
 	typeInvalid = 9
 };
 
-
+#ifdef DEBUG
 enum MsgError {
 	err_NoErr = 0,
 	err_InvalidType = 1,
@@ -29,6 +31,7 @@ enum MsgError {
 	err_InvalidDataTypeForRegisteredId = 6,
 	err_CallbackNotRegisteredForId = 7
 };
+#endif // DEBUG
 
 
 #endif

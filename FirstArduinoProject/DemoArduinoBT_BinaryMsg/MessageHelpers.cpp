@@ -4,7 +4,7 @@
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 
-
+#ifdef DEBUG
 struct MsgHeader {
 public:
 	uint8_t SOH = _SOH;
@@ -13,9 +13,6 @@ public:
 	uint8_t DataType = typeUndefined;
 	uint8_t Id = 0;
 };
-
-
-
 
 // Err message
 
@@ -33,6 +30,7 @@ void ErrMsg::Init() {
 	this->Id = 0;
 	this->Error = err_NoErr;
 }
+#endif // DEBUG
 
 
 
@@ -49,9 +47,11 @@ MsgHelpers::msgFuncPtrUInt8 MsgHelpers::ptrUInt8 = NULL;
 MsgHelpers::msgFuncPtrUInt16 MsgHelpers::ptrUInt16 = NULL;
 MsgHelpers::msgFuncPtrUInt32 MsgHelpers::ptrUInt32 = NULL;
 MsgHelpers::msgFuncPtrFloat32 MsgHelpers::ptrFloat32 = NULL;
+#ifdef DEBUG
 MsgHelpers::errEventPtr MsgHelpers::errCallback = NULL;
-
 ErrMsg MsgHelpers::errMsg;
+#endif // DEBUG
+
 
 
 MsgHelpers::MsgHelpers() {
@@ -71,10 +71,11 @@ bool MsgHelpers::RegisterInIds(uint8_t id, MsgDataType dataType) {
 	return false;
 }
 
-
+#ifdef DEBUG
 void MsgHelpers::RegisterErrCallback(errEventPtr ptr) {
 	MsgHelpers::errCallback = ptr;
 }
+#endif // DEBUG
 
 
 void MsgHelpers::RegisterFuncBool(msgFuncPtrBool ptr) {
@@ -119,9 +120,12 @@ void MsgHelpers::RegisterFuncFloat32(msgFuncPtrFloat32 ptr) {
 #endif // !SECTION_PUBLIC_METHODS
 
 
-bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
+bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t dataSize) {
+
+#ifdef DEBUG
 	MsgHelpers::errMsg.Init();
-	if (size < MSG_HEADER_SIZE) {
+
+	if (dataSize < MSG_HEADER_SIZE) {
 		MsgHelpers::errMsg.Size = 0;
 		MsgHelpers::errMsg.Error = err_InvalidHeaderSize;
 		return MsgHelpers::RaiseError(&errMsg);
@@ -173,6 +177,46 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
 
 	errMsg.Error = err_CallbackNotRegisteredForId;
 	return MsgHelpers::RaiseError(&errMsg);
+#else
+	// TODO - look at registering a simple error return with err type?
+	if (dataSize < MSG_HEADER_SIZE) {
+		return false;
+	}
+
+	if (*(buff + SOH_POS) != _SOH || *(buff + STX_POS) != _STX) {
+		return false;
+	}
+
+	uint8_t dataType = (MsgDataType)(*(buff + TYPE_POS));
+	// Get size and validate the number against the data type
+	if (!(dataType > typeUndefined) && (dataType < typeInvalid)) {
+		return false;
+	}
+
+	uint16_t size = MsgHelpers::GetSizeFromHeader(buff);
+	if (size == 0) {
+		return false;
+	}
+
+	if (size != MSG_HEADER_SIZE + MSG_FOOTER_SIZE + GetPayloadSize((MsgDataType)dataType)) {
+		return false;
+	}
+
+	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
+	// validate id and expected data type
+	for (int i = 0; i < MsgHelpers::currentIdListNextPos; i++) {
+		// Found registered ID
+		if (MsgHelpers::inMsgIds[i][0] == id) {
+			if (MsgHelpers::inMsgIds[i][1] == dataType) {
+				return true;
+			}
+			// Msg data type not same as registered for ID
+			return false;
+		}
+	}
+
+	return false;
+#endif // DEBUG
 }
 
 
@@ -205,7 +249,7 @@ bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
 	return false;
 }
 
-
+#ifdef DEBUG
 bool MsgHelpers::RaiseError(ErrMsg* msg) {
 	if (MsgHelpers::errCallback != NULL) {
 		MsgHelpers::errCallback(msg);
@@ -213,6 +257,7 @@ bool MsgHelpers::RaiseError(ErrMsg* msg) {
 	// Return false to optimize use to exit bool methods
 	return false;
 }
+#endif // DEBUG
 
 
 bool MsgHelpers::RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset) {

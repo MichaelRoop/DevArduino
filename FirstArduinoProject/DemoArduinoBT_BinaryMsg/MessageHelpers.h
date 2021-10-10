@@ -8,7 +8,7 @@
 
 #define MAX_IN_ID_REG 25
 
-
+#ifdef DEBUG
 struct ErrMsg {
 public:
 	uint8_t SOH = 0;
@@ -22,6 +22,7 @@ public:
 	void Init();
 	ErrMsg();
 };
+#endif // DEBUG
 
 
 class MsgHelpers {
@@ -34,7 +35,10 @@ class MsgHelpers {
 	typedef void (*msgFuncPtrUInt16)(uint8_t id, uint16_t value);
 	typedef void (*msgFuncPtrUInt32)(uint8_t id, uint32_t value);
 	typedef void (*msgFuncPtrFloat32)(uint8_t id, float value);
+#ifdef DEBUG
 	typedef void (*errEventPtr)(ErrMsg* err);
+#endif // DEBUG
+
 public:
 
 	// Register in message ids and expected data type for validation
@@ -60,7 +64,9 @@ public:
 	static void RegisterFuncUInt16(msgFuncPtrUInt16 ptr);
 	static void RegisterFuncUInt32(msgFuncPtrUInt32 ptr);
 	static void RegisterFuncFloat32(msgFuncPtrFloat32 ptr);
+#ifdef DEBUG
 	static void RegisterErrCallback(errEventPtr ptr);
+#endif // DEBUG
 
 private:
 	static msgFuncPtrBool ptrBool;
@@ -71,16 +77,23 @@ private:
 	static msgFuncPtrUInt16 ptrUInt16;
 	static msgFuncPtrUInt32 ptrUInt32;
 	static msgFuncPtrFloat32 ptrFloat32;
+#ifdef DEBUG
 	static errEventPtr errCallback;
+#endif // DEBUG
+
 	// Each entry has id,data type. Used for validation
 	static uint8_t inMsgIds[MAX_IN_ID_REG][2];
 	static uint8_t currentIdListNextPos;
+#ifdef DEBUG
 	static ErrMsg errMsg;
+#endif // DEBUG
 
 	MsgHelpers();
 	static uint8_t GetIdFromHeader(uint8_t* buff);
 	static byte GetPayloadSize(MsgDataType dt);
+#ifdef DEBUG
 	static bool RaiseError(ErrMsg* msg);
+#endif // DEBUG
 	static bool RaiseRegisteredEvents(uint8_t* buff);
 	static bool RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset);
@@ -90,7 +103,6 @@ private:
 	static bool RaiseUInt16(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseUInt32(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseFloat32(uint8_t id, uint8_t* buff, uint8_t offset);
-
 
 };
 

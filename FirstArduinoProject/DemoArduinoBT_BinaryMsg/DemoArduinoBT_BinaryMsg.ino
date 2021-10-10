@@ -118,7 +118,10 @@ void Initialize() {
 	// Register all you require for your program
 	MsgHelpers::RegisterFuncBool(&CallbackBoolValue);
 	MsgHelpers::RegisterFuncUInt8(&CallbackUint8Value);
+#ifdef DEBUG
 	MsgHelpers::RegisterErrCallback(&ErrCallback);
+#endif // DEBUG
+
 }
 
 
@@ -210,8 +213,8 @@ void GetRemainingMsgFragment(int available) {
 #ifndef SECTION_CALLBACKS
 
 
-void ErrCallback(ErrMsg* errMsg) {
 #ifdef DEBUG
+void ErrCallback(ErrMsg* errMsg) {
 	PrintErr(errMsg);
 	if (errMsg->Error != err_NoErr) {
 		Serial.print("-SOH:"); Serial.println(errMsg->SOH);
@@ -222,12 +225,12 @@ void ErrCallback(ErrMsg* errMsg) {
 		Serial.print("-Required Size:"); Serial.println(errMsg->RequiredSize);
 		Serial.print("-ID:"); Serial.println(errMsg->Id);
 	}
-#endif
 }
+#endif
 
 
-void PrintDataType(ErrMsg* msg) {
 #ifdef DEBUG
+void PrintDataType(ErrMsg* msg) {
 	switch (msg->DataType) {
 	case typeUndefined:
 		case typeBool:
@@ -263,12 +266,12 @@ void PrintDataType(ErrMsg* msg) {
 			break;
 		break;
 	}
-#endif
 }
+#endif
 
 
-void PrintErr(ErrMsg* msg) {
 #ifdef DEBUG
+void PrintErr(ErrMsg* msg) {
 	switch (msg->Error) {
 	case err_NoErr:
 		Serial.println("\nNo err");
@@ -298,8 +301,8 @@ void PrintErr(ErrMsg* msg) {
 		Serial.println("\nUnhandled");
 		break;
 	}
-#endif
 }
+#endif
 
 
 
