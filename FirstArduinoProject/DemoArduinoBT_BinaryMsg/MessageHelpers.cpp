@@ -4,6 +4,19 @@
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 
+
+struct MsgHeader {
+public:
+	uint8_t SOH = _SOH;
+	uint8_t STX = _STX;
+	uint16_t Size = 0;
+	uint8_t DataType = typeUndefined;
+	uint8_t Id = 0;
+};
+
+
+
+
 // Err message
 
 ErrMsg::ErrMsg() {
@@ -113,6 +126,9 @@ bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
 		MsgHelpers::errMsg.Error = err_InvalidHeaderSize;
 		return MsgHelpers::RaiseError(&errMsg);
 	}
+
+	MsgHeader h;
+	memcpy(&h, buff, sizeof(MsgHeader));
 
 	errMsg.SOH = *(buff + SOH_POS);
 	errMsg.STX = *(buff + STX_POS);

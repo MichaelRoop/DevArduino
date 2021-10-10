@@ -143,11 +143,14 @@ void PurgeBuffAndBT() {
 #ifndef SECTION_INCOMING_MSGS
 
 void ListenForData() {
-	if (currentPos == 0) {
-		GetNewMsg(btSerial.available());
-	}
-	else {
-		GetRemainingMsgFragment(btSerial.available());
+	int available = btSerial.available();
+	if (available > 0) {
+		if (currentPos == 0) {
+			GetNewMsg(available);
+		}
+		else {
+			GetRemainingMsgFragment(available);
+		}
 	}
 }
 
@@ -209,8 +212,6 @@ void GetRemainingMsgFragment(int available) {
 
 #define VERBOSE_DEBUG 1
 void ErrCallback(ErrMsg* errMsg) {
-	// TODO - send msg back to client
-	//Serial.print("----Err:"); Serial.print(err);
 #ifdef VERBOSE_DEBUG
 	PrintErr(errMsg);
 	if (errMsg->Error != err_NoErr) {
@@ -223,8 +224,8 @@ void ErrCallback(ErrMsg* errMsg) {
 		Serial.print("-ID:"); Serial.println(errMsg->Id);
 	}
 #endif // VERBOSE_DEBUG
-
 }
+
 
 void PrintDataType(ErrMsg* msg) {
 #ifdef VERBOSE_DEBUG
