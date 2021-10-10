@@ -3,7 +3,6 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
-//#include <AltSoftSerial.h>
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 #include "MsgMessages.h"
@@ -13,9 +12,8 @@
 
 #ifndef SECTION_DEFINES
 
-// These are the IDs for the outgoing messages
-#define ANALOG_0_ID 20
-#define ANALOG_1_ID 21
+// Outgoing msg IDs
+#define OUT_MSG_ID_ANALOG_0 20
 
 // MSG IDs for incoming message
 #define IN_MSG_ID_LED_RED_PIN 10
@@ -33,7 +31,7 @@
 #define ANALOG_DEBOUNCE_GAP 5
 
 // We never copy in more than the max current message size of 12
-#define IN_BUFF_SIZE 30
+#define IN_BUFF_SIZE 12
 
 #endif // !SECTION_DEFINES
 
@@ -45,8 +43,8 @@ int lastPinX;
 // Just have the types you need in your application. One can be used for 
 // multiple outgoing IOs by changing the ID and Value before send
 MsgFloat32 outFloat;
-MsgBool outBool;
 MsgUInt8 outUint8;
+//MsgBool outBool;
 
 // Process the temperature
 TemperatureProcessor temperatureProcessor;
@@ -61,19 +59,25 @@ uint8_t currentRemaining = 0;
 // They are reversed on serial since RX from BT gets TX to serial
 SoftwareSerial btSerial(5, 4); //RX,TX
 
-
 #endif // !SECTION_VARIABLES
 
 #ifndef SECTION_ARDUINO_FUNCTIONS
 
 void setup() {
+#ifdef DEBUG
 	Serial.begin(115200);
 	while (!Serial) { }
-	// Must set the baud via an AT command AT+BAUD=115200,1,0
-	btSerial.begin(115200);
+#endif // DEBUG
+
+	// Must set the baud via an AT command AT+UART=115200,1,0
+	btSerial.begin(115200); // corrupts data but I can recover
+	//btSerial.begin(57600);// not fast enough
 
 	while (!btSerial) {	}
-	Serial.println("...");
+#ifdef DEBUG
+	Serial.println("BT Binary...");
+#endif // DEBUG
+
 	Initialize();
 	//DbgMsgs();
 	//MsgHelpers::Execute();
@@ -135,8 +139,13 @@ void ResetInBuff() {
 // Purge all in the app buffer and Bluetooth serial buffer
 void PurgeBuffAndBT() {
 	int available = btSerial.available();
-	if (available > 0) {
-		btSerial.readBytes(buff, available);
+	while (available > 0) {
+		// Iterate through max BUFF size read at a time
+		if (available > IN_BUFF_SIZE) {
+			available = IN_BUFF_SIZE;
+		}
+		int count = btSerial.readBytes(buff, available);
+		available = btSerial.available();
 	}
 	ResetInBuff();
 }
@@ -146,6 +155,7 @@ void PurgeBuffAndBT() {
 #ifndef SECTION_INCOMING_MSGS
 
 void ListenForData() {
+	/*
 	int available = btSerial.available();
 	if (available > 0) {
 		if (currentPos == 0) {
@@ -155,6 +165,23 @@ void ListenForData() {
 			GetRemainingMsgFragment(available);
 		}
 	}
+	*/
+
+	// Try to change to loop through until nothing in buffer
+	int available = btSerial.available();
+	while (available > 0) {
+		available = btSerial.available();
+		if (available > 0) {
+			if (currentPos == 0) {
+				GetNewMsg(available);
+			}
+			else {
+				GetRemainingMsgFragment(available);
+			}
+		}
+	}
+
+
 }
 
 
@@ -169,8 +196,9 @@ void GetNewMsg(int available) {
 			currentPos = btSerial.readBytes(buff, MSG_HEADER_SIZE);
 			if (MsgHelpers::ValidateHeader(buff, currentPos)) {
 				currentRemaining = (MsgHelpers::GetSizeFromHeader(buff) - MSG_HEADER_SIZE);
-				if (btSerial.available() >= currentRemaining) {
-					GetRemainingMsgFragment(btSerial.available());
+				available = btSerial.available();
+				if (available >= currentRemaining) {
+					GetRemainingMsgFragment(available);
 				}
 			}
 			else {
@@ -198,11 +226,13 @@ void GetRemainingMsgFragment(int available) {
 	//	Serial.println("RX Overflow on fragment");
 	//}
 	//else {
+		// TODO - only read MAX buff size at a time
+
 		if (available >= currentRemaining) {
 			size_t count = btSerial.readBytes(buff + currentPos, currentRemaining);
 			//Serial.print("GetFrag:"); Serial.print(currentRemaining); Serial.print(":"); Serial.println(count);
 			currentPos += count;
-			MsgHelpers::ValidateMessage(buff, currentPos);
+			bool result = MsgHelpers::ValidateMessage(buff, currentPos);
 			ResetInBuff();
 		}
 	//}
@@ -226,10 +256,8 @@ void ErrCallback(ErrMsg* errMsg) {
 		Serial.print("-ID:"); Serial.println(errMsg->Id);
 	}
 }
-#endif
 
 
-#ifdef DEBUG
 void PrintDataType(ErrMsg* msg) {
 	switch (msg->DataType) {
 	case typeUndefined:
@@ -267,10 +295,8 @@ void PrintDataType(ErrMsg* msg) {
 		break;
 	}
 }
-#endif
 
 
-#ifdef DEBUG
 void PrintErr(ErrMsg* msg) {
 	switch (msg->Error) {
 	case err_NoErr:
@@ -308,7 +334,7 @@ void PrintErr(ErrMsg* msg) {
 
 
 void CallbackBoolValue(uint8_t id, bool value) {
-	Serial.print("bool-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
+	//Serial.print("bool-id:"); Serial.print(id); Serial.print(" Val:"); Serial.println(value);
 	switch (id) {
 	case IN_MSG_ID_LED_RED_PIN:
 		digitalWrite(LED_RED_PIN, value ? HIGH : LOW);
@@ -351,7 +377,7 @@ void CallbackUint8Value(uint8_t id, uint8_t value) {
 // May have to put these in a stack where the send can happend when other sends complete
 void CheckForSendBackData() {
 	// In our demo, a KY-013 temperature sensor is attached to Analog pin A0
-	if (ChatterFiltered(analogRead(A0), &lastA0Value, ANALOG_0_ID)) {
+	if (ChatterFiltered(analogRead(A0), &lastA0Value, OUT_MSG_ID_ANALOG_0)) {
 		SendTemperature(lastA0Value);
 	}
 
@@ -409,7 +435,7 @@ void SendUInt32Msg(uint8_t id, uint32_t value) {
 void SendFloatMsg(uint8_t id, float value) {
 	outFloat.Id = id;
 	outFloat.Value = value;
-	Serial.println(value);
+	//Serial.println(value);
 	SendMsg(&outFloat, outFloat.Size);
 }
 
@@ -431,7 +457,7 @@ void SendMsg(void* msg, int size) {
 // Convert raw sensor to temperature
 void SendTemperature(int sensorValue) {
 	temperatureProcessor.ProcessRaw(sensorValue);
-	SendFloatMsg(ANALOG_0_ID, temperatureProcessor.Celcius());
+	SendFloatMsg(OUT_MSG_ID_ANALOG_0, temperatureProcessor.Celcius());
 	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Kelvin());
 	//SendFloatMsg(ANALOG_0_ID, tempProcessor.Farenheit());
 }
