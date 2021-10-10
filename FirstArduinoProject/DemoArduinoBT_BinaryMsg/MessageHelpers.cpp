@@ -4,6 +4,25 @@
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 
+// Err message
+
+ErrMsg::ErrMsg() {
+	this->Init();
+}
+
+void ErrMsg::Init() {
+	this->SOH = 0;
+	this->STX = 0;
+	this->Size = 0;
+	this->DataType = typeUndefined;
+	this->PayloadSize = 0;
+	this->RequiredSize = 0;
+	this->Id = 0;
+	this->Error = err_NoErr;
+}
+
+
+
 uint8_t MsgHelpers::inMsgIds[MAX_IN_ID_REG][2];
 uint8_t MsgHelpers::currentIdListNextPos;
 
@@ -18,6 +37,9 @@ MsgHelpers::msgFuncPtrUInt16 MsgHelpers::ptrUInt16 = NULL;
 MsgHelpers::msgFuncPtrUInt32 MsgHelpers::ptrUInt32 = NULL;
 MsgHelpers::msgFuncPtrFloat32 MsgHelpers::ptrFloat32 = NULL;
 MsgHelpers::errEventPtr MsgHelpers::errCallback = NULL;
+
+ErrMsg MsgHelpers::errMsg;
+
 
 MsgHelpers::MsgHelpers() {
 	MsgHelpers::currentIdListNextPos = 0;
@@ -85,57 +107,56 @@ void MsgHelpers::RegisterFuncFloat32(msgFuncPtrFloat32 ptr) {
 
 
 bool MsgHelpers::ValidateHeader(uint8_t* buff, uint8_t size) {
+	MsgHelpers::errMsg.Init();
 	if (size < MSG_HEADER_SIZE) {
-		return MsgHelpers::RaiseError(err_InvalidHeaderSize, size);
+		MsgHelpers::errMsg.Size = 0;
+		MsgHelpers::errMsg.Error = err_InvalidHeaderSize;
+		return MsgHelpers::RaiseError(&errMsg);
 	}
 
-	if ((*(buff + SOH_POS) != _SOH) || (*(buff + STX_POS) != _STX)) {
-		MsgHelpers::RaiseError(err_StartDelimiters, *(buff + SOH_POS));
-		return MsgHelpers::RaiseError(err_StartDelimiters, *(buff + STX_POS));
+	errMsg.SOH = *(buff + SOH_POS);
+	errMsg.STX = *(buff + STX_POS);
+	if (errMsg.SOH != _SOH || errMsg.STX != _STX) {
+		errMsg.Error = err_StartDelimiters;
+		return MsgHelpers::RaiseError(&errMsg);
 	}
 
-	//if (!(*(buff + TYPE_POS) > typeUndefined) && (*(buff + TYPE_POS) < typeInvalid)) {
-	//	return MsgHelpers::RaiseError(err_InvalidType, *(buff + TYPE_POS));
-	//}
-
-	//// Get size and validate the number against the data type
-	//MsgDataType dt = (MsgDataType)(*(buff + TYPE_POS));
-	//uint16_t sizeField = MsgHelpers::GetSizeFromHeader(buff);
-	//if (sizeField == 0) {
-	//	return MsgHelpers::RaiseError(err_InvalidSizeField, sizeField);
-	//}
-
+	errMsg.DataType = (MsgDataType)(*(buff + TYPE_POS));
 	// Get size and validate the number against the data type
-	MsgDataType dt = (MsgDataType)(*(buff + TYPE_POS));
-	if (!(dt > typeUndefined) && (dt < typeInvalid)) {
-		return MsgHelpers::RaiseError(err_InvalidType, dt);
+	if (!(errMsg.DataType > typeUndefined) && (errMsg.DataType < typeInvalid)) {
+		errMsg.Error = err_InvalidType;
+		return MsgHelpers::RaiseError(&errMsg);
 	}
 
-	uint16_t sizeField = MsgHelpers::GetSizeFromHeader(buff);
-	if (sizeField == 0) {
-		return MsgHelpers::RaiseError(err_InvalidSizeField, sizeField);
+	errMsg.Size = MsgHelpers::GetSizeFromHeader(buff);
+	if (errMsg.Size == 0) {
+		errMsg.Error = err_InvalidSizeField;
+		return MsgHelpers::RaiseError(&errMsg);
 	}
 
-	byte payloadSize = GetPayloadSize(dt);
-	if (sizeField != (MSG_HEADER_SIZE + MSG_FOOTER_SIZE + payloadSize)) {
-		MsgHelpers::RaiseError(err_InvalidPayloadSizeField, dt);
-		return MsgHelpers::RaiseError(err_InvalidPayloadSizeField, payloadSize);
+	errMsg.PayloadSize = GetPayloadSize(errMsg.DataType);
+	errMsg.RequiredSize = MSG_HEADER_SIZE + MSG_FOOTER_SIZE + errMsg.PayloadSize;
+	if (errMsg.Size != errMsg.RequiredSize) {
+		errMsg.Error = err_InvalidPayloadSizeField;
+		return MsgHelpers::RaiseError(&errMsg);
 	}
 
-	uint8_t id = MsgHelpers::GetIdFromHeader(buff);
+	errMsg.Id = MsgHelpers::GetIdFromHeader(buff);
 	// validate id and expected data type
 	for (int i = 0; i < MsgHelpers::currentIdListNextPos; i++) {
 		// Found registered ID
-		if (MsgHelpers::inMsgIds[i][0] == id) {
-			if (MsgHelpers::inMsgIds[i][1] == dt) {
+		if (MsgHelpers::inMsgIds[i][0] == errMsg.Id) {
+			if (MsgHelpers::inMsgIds[i][1] == errMsg.DataType) {
 				return true;
 			}
 			// Msg data type not same as registered for ID
-			MsgHelpers::RaiseError(err_CallbackNotRegisteredForId, id);
-			return MsgHelpers::RaiseError(err_InvalidDataTypeForRegisteredId, dt);
+			errMsg.Error = err_InvalidDataTypeForRegisteredId;
+			return MsgHelpers::RaiseError(&errMsg);
 		}
 	}
-	return MsgHelpers::RaiseError(err_CallbackNotRegisteredForId, id);
+
+	errMsg.Error = err_CallbackNotRegisteredForId;
+	return MsgHelpers::RaiseError(&errMsg);
 }
 
 
@@ -169,9 +190,9 @@ bool MsgHelpers::ValidateMessage(uint8_t* buff, int length) {
 }
 
 
-bool MsgHelpers::RaiseError(MsgError err, uint16_t val) {
+bool MsgHelpers::RaiseError(ErrMsg* msg) {
 	if (MsgHelpers::errCallback != NULL) {
-		MsgHelpers::errCallback(err, val);
+		MsgHelpers::errCallback(msg);
 	}
 	// Return false to optimize use to exit bool methods
 	return false;
@@ -290,8 +311,9 @@ bool MsgHelpers::RaiseRegisteredEvents(uint8_t* buff) {
 	case typeUndefined:
 	case typeInvalid:
 	default:
+		// TODO - show error
 		// Should not happen raise err and return true to avoid unregietered error
-		RaiseError(err_InvalidType, (uint16_t)MsgHelpers::GetDataTypeFromHeader(buff));
+		//RaiseError(err_InvalidType, (uint16_t)MsgHelpers::GetDataTypeFromHeader(buff));
 		return true;
 	}
 }

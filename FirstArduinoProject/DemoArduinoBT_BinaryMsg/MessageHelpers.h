@@ -8,6 +8,22 @@
 
 #define MAX_IN_ID_REG 25
 
+
+struct ErrMsg {
+public:
+	uint8_t SOH = 0;
+	uint8_t STX = 0;
+	uint16_t Size = 0;
+	MsgDataType DataType = typeUndefined;
+	byte PayloadSize = 0;
+	uint16_t RequiredSize = 0;
+	uint8_t Id = 0;
+	MsgError Error = err_NoErr;
+	void Init();
+	ErrMsg();
+};
+
+
 class MsgHelpers {
 	// Typedefs for execute methods
 	typedef void (*msgFuncPtrBool)(uint8_t id, bool value);
@@ -18,7 +34,7 @@ class MsgHelpers {
 	typedef void (*msgFuncPtrUInt16)(uint8_t id, uint16_t value);
 	typedef void (*msgFuncPtrUInt32)(uint8_t id, uint32_t value);
 	typedef void (*msgFuncPtrFloat32)(uint8_t id, float value);
-	typedef void (*errEventPtr)(MsgError err, uint16_t);
+	typedef void (*errEventPtr)(ErrMsg* err);
 public:
 
 	// Register in message ids and expected data type for validation
@@ -59,11 +75,12 @@ private:
 	// Each entry has id,data type. Used for validation
 	static uint8_t inMsgIds[MAX_IN_ID_REG][2];
 	static uint8_t currentIdListNextPos;
+	static ErrMsg errMsg;
 
 	MsgHelpers();
 	static uint8_t GetIdFromHeader(uint8_t* buff);
 	static byte GetPayloadSize(MsgDataType dt);
-	static bool RaiseError(MsgError err, uint16_t val);
+	static bool RaiseError(ErrMsg* msg);
 	static bool RaiseRegisteredEvents(uint8_t* buff);
 	static bool RaiseBool(uint8_t id, uint8_t* buff, uint8_t offset);
 	static bool RaiseInt8(uint8_t id, uint8_t* buff, uint8_t offset);

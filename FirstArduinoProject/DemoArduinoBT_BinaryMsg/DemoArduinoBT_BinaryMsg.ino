@@ -208,46 +208,100 @@ void GetRemainingMsgFragment(int available) {
 
 
 #define VERBOSE_DEBUG 1
-void ErrCallback(MsgError err, uint16_t val) {
+void ErrCallback(ErrMsg* errMsg) {
 	// TODO - send msg back to client
 	//Serial.print("----Err:"); Serial.print(err);
 #ifdef VERBOSE_DEBUG
-	switch (err) {
-	case err_NoErr:
-		Serial.print(" no err");
-		break;
-	case err_InvalidType:
-		Serial.print(" Invalid data type");
-		break;
-	case err_InvalidHeaderSize:
-		Serial.print(" Invalid header size");
-		break;
-	case err_StartDelimiters:
-		Serial.print(" Err with start delimiters");
-		break;
-	case err_InvalidSizeField:
-		Serial.print(" Invalid msg size value");
-		break;
-	case err_InvalidPayloadSizeField:
-		Serial.print(" Bad payload size value");
-		break;
-	case err_InvalidDataTypeForRegisteredId:
-		Serial.print(" Invalid data type for msg ID");
-		break;
-	case err_CallbackNotRegisteredForId:
-		Serial.print(" No callback for msg ID");
-		break;
-	default:
-		Serial.print(" Unhandled");
-		break;
+	PrintErr(errMsg);
+	if (errMsg->Error != err_NoErr) {
+		Serial.print("-SOH:"); Serial.println(errMsg->SOH);
+		Serial.print("-STX:"); Serial.println(errMsg->STX);
+		Serial.print("-Size:"); Serial.println(errMsg->Size);
+		Serial.print("-Type:"); PrintDataType(errMsg);
+		Serial.print("-Payload Size:"); Serial.println(errMsg->PayloadSize);
+		Serial.print("-Required Size:"); Serial.println(errMsg->RequiredSize);
+		Serial.print("-ID:"); Serial.println(errMsg->Id);
 	}
-	Serial.print(":"); Serial.println(val);
-
-#else
-	//Serial.println("");
 #endif // VERBOSE_DEBUG
 
 }
+
+void PrintDataType(ErrMsg* msg) {
+#ifdef VERBOSE_DEBUG
+	switch (msg->DataType) {
+	case typeUndefined:
+		case typeBool:
+			Serial.println("bool");
+			break;
+		case typeInt8:
+			Serial.println("int8");
+			break;
+		case typeUInt8:
+			Serial.println("uint8");
+			break;
+		case typeInt16:
+			Serial.println("int16");
+			break;
+		case typeUInt16:
+			Serial.println("uint16");
+			break;
+		case typeInt32:
+			Serial.println("int32");
+			break;
+		case typeUInt32:
+			Serial.println("uint32");
+			break;
+		case typeFloat32:
+			Serial.println("float32");
+			break;
+			//case typeString:
+		case typeInvalid:
+			Serial.println("invalid type");
+			break;
+		default:
+			Serial.println("unhhandled type");
+			break;
+		break;
+	}
+#endif
+}
+
+
+void PrintErr(ErrMsg* msg) {
+#ifdef VERBOSE_DEBUG
+	switch (msg->Error) {
+	case err_NoErr:
+		Serial.println("\nNo err");
+		break;
+	case err_InvalidType:
+		Serial.println("\nInvalid data type");
+		break;
+	case err_InvalidHeaderSize:
+		Serial.println("\nInvalid header size");
+		break;
+	case err_StartDelimiters:
+		Serial.println("\nErr with start delimiters");
+		break;
+	case err_InvalidSizeField:
+		Serial.println("\nInvalid msg size value");
+		break;
+	case err_InvalidPayloadSizeField:
+		Serial.println("\nBad payload size value");
+		break;
+	case err_InvalidDataTypeForRegisteredId:
+		Serial.println("\nInvalid data type for msg");
+		break;
+	case err_CallbackNotRegisteredForId:
+		Serial.println("\nNo callback for msg");
+		break;
+	default:
+		Serial.println("\nUnhandled");
+		break;
+	}
+#endif
+}
+
+
 
 
 void CallbackBoolValue(uint8_t id, bool value) {
