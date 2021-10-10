@@ -210,9 +210,8 @@ void GetRemainingMsgFragment(int available) {
 #ifndef SECTION_CALLBACKS
 
 
-#define VERBOSE_DEBUG 1
 void ErrCallback(ErrMsg* errMsg) {
-#ifdef VERBOSE_DEBUG
+#ifdef DEBUG
 	PrintErr(errMsg);
 	if (errMsg->Error != err_NoErr) {
 		Serial.print("-SOH:"); Serial.println(errMsg->SOH);
@@ -223,12 +222,12 @@ void ErrCallback(ErrMsg* errMsg) {
 		Serial.print("-Required Size:"); Serial.println(errMsg->RequiredSize);
 		Serial.print("-ID:"); Serial.println(errMsg->Id);
 	}
-#endif // VERBOSE_DEBUG
+#endif
 }
 
 
 void PrintDataType(ErrMsg* msg) {
-#ifdef VERBOSE_DEBUG
+#ifdef DEBUG
 	switch (msg->DataType) {
 	case typeUndefined:
 		case typeBool:
@@ -269,7 +268,7 @@ void PrintDataType(ErrMsg* msg) {
 
 
 void PrintErr(ErrMsg* msg) {
-#ifdef VERBOSE_DEBUG
+#ifdef DEBUG
 	switch (msg->Error) {
 	case err_NoErr:
 		Serial.println("\nNo err");

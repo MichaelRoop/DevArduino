@@ -9,6 +9,9 @@
 	#include "WProgram.h"
 #endif
 
+#define DEBUG 1
+
+
 // Start of heading, start of text
 #define _SOH 0x01
 #define _STX 0x02
