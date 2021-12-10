@@ -29,3 +29,5 @@ FirstArduinoProject/.vs/FirstArduinoProject/v16/*.*.db
 /FirstArduinoProject/DemoArduinoBT_BinaryMsg/__vm/Upload.vmps.xml
 /FirstArduinoProject/ArduinoSerial_BT_AT_Cmds/__vm/Compile.vmps.xml
 /FirstArduinoProject/ArduinoSerial_BT_AT_Cmds/__vm/Upload.vmps.xml
+/ArduinoBluetoothDataTests/Release/*
+/FirstArduinoProject/.vs/*

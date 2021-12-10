@@ -1,29 +1,55 @@
-/*
- Name:		ArduinoWifi.ino
- Created:	10/16/2020 1:22:40 PM
- Author:	Michael
-*/
-//#include <ArduinoBLE.h>
-//#include <SPI.h>
-// the setup function runs once when you press reset or power the board
+// --------------------------------------------------------------
+// Name:		TestArduinoWifi.ino
+// Created:	10/16/2020 1:22:40 PM
+// Author:	Michael
+//
+// Tested on the Arduino UNO WIFI Rev2
+//
+// Sets up the board as a WIFI access point with a socket
+//
+// Initial example code found in:
+// https://www.arduino.cc/en/Reference/WiFiNINABeginAP
+//
+// --------------------------------------------------------------
+#include <SPI.h>
 #include <WiFiNINA.h>
 #include "wifi_defines.h"
+// --------------------------------------------------------------
+// The wifi_defines.h has the strings for the SSID and password
+// Here are the contents
+//       #pragma once
+//       
+//       Must be 8 or more characters
+//       #define MY_SSID "MikieArduinoWifi"
+//
+//       Must be 8 or more characters
+//       #define MY_PASS "1234567890"
+// 
+//            Key: 1234567890 
+// Address (HOST): 192.168.1.222
+//            Port: 80
+// 
+// --------------------------------------------------------------
 
 char ssid[] = MY_SSID;
 char pwd[] = MY_PASS;
 int keyIndex = 0;
 int status = WL_IDLE_STATUS;
 int led = LED_BUILTIN;
-WiFiServer server(80); // Port 80 http
+
+// Socket Port 80 is for HTTP - using it as demo entry point
+// Set Multi Comm Terminal port number to the same as in Arduino
+WiFiServer server(80);
 
 void setup() {
+	// Serial is just to push data for debugging the Arduino code. Can be removed
 	Serial.begin(57600);
-	while(!Serial){}
+	while (!Serial) {}
 	Serial.println("Serial started");
 
 	pinMode(led, OUTPUT);
 
-	// check for the WiFi module:
+	// Check for the WiFi module:
 	if (WiFi.status() == WL_NO_MODULE) {
 		Serial.println("Communication with WiFi module failed!");
 		// don't continue
@@ -34,32 +60,19 @@ void setup() {
 	Serial.print("WIFI firmware version ");
 	Serial.println(fv);
 
-	
 	if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-		Serial.print("Version below "); 
+		Serial.print("Version below ");
 		Serial.println(WIFI_FIRMWARE_LATEST_VERSION);
 		Serial.println("Please upgrade the firmware");
 	}
 
-	/*
-	// attempt to connect to Wifi network:
-	while (status != WL_CONNECTED) {
-		Serial.print("Attempting to connect to SSID: ");
-		Serial.println(ssid);
-		// Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-		status = WiFi.begin(ssid, pwd);
-
-		// wait 10 seconds for connection:
-		delay(10000);
-	}
-	*/
-
-
 	// by default the local IP address of will be 192.168.4.1
-	 // you can override it with the following:
-	 // WiFi.config(IPAddress(10, 0, 0, 1));
+	// you can override it with the following:
+	// Whatever you choose will be the IP that you enter in 
+	// the Multi Comm Connection parameters
+	 WiFi.config(IPAddress(192, 168, 1, 222));
 
-	 // print the network name (SSID);
+	 // Print the network name (SSID);
 	Serial.print("Creating access point named: ");
 	Serial.println(ssid);
 
@@ -68,131 +81,68 @@ void setup() {
 	if (status != WL_AP_LISTENING) {
 		Serial.print("Status "); Serial.println(status);
 		Serial.println("Access point creation failed");
-		while (true) { }
+		while (true) {}
 	}
 
-	//delay(1000);
-
-
 	server.begin();
-	// you're connected now, so print out the status:
+	// you're connected now, so print out the status to the serial debug:
 	printWifiStatus();
-
 }
 
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-
+	// Print a message to debug if a device has connected or disconnected
 	if (status != WiFi.status()) {
 		status = WiFi.status();
-
-		switch (status) {
-		case WL_AP_CONNECTED:
+		if (status == WL_AP_CONNECTED) {
 			Serial.println("Device connected to AP");
-			//server.begin();
-			break;
-		case WL_AP_LISTENING:
-			Serial.println("Device disconnected from AP");
-			//KillWifiClient();
-			break;
-		case WL_CONNECTION_LOST:
-			Serial.println("Device connection lost");
-			//KillWifiClient();
-			break;
-		default:
-			Serial.print("Other WIFI status:");
-			Serial.println(status);
-			break;
 		}
-
-		//if (status == WL_AP_CONNECTED) {
-		//	Serial.println("Device connected to AP");
-		//	//server.begin();
-		//}
-		//else if (status == WL_CONNECTION_LOST) {
-		//	Serial.println("Device disconnected from AP");
-		//	//WiFiClient client = server.available();
-		//	//if (client) {
-		//	//	client.stop();
-		//	//}
-		//}
-		//else {
-		//	// a device has disconnected from the AP, and we are back in listening mode
-		//	Serial.print("Other WIFI status:");
-		//	Serial.println(status);
-		//}
+		else {
+			// Device has disconnected from AP. Back in listening mode
+			Serial.println("Device disconnected from AP");
+		}
 	}
-
-	if (status == WL_AP_CONNECTED) {
-		ListenForClient();
-	}
+	ListenForClient();
 }
 
 
-void KillWifiClient() {
-	WiFiClient client = server.available();
-	if (client) {
-		client.stop();
-	}
-}
- 
-
-
-
+// Determines if a client has connected a socket and sent a message
 void ListenForClient() {
 	//https://www.arduino.cc/en/Reference/WiFiNINABeginAP
 	WiFiClient client = server.available();
-	if (client) {                     
-		Serial.println("Got a client connected new client"); 
-		String currentLine = ""; 
+	if (client) {
+		Serial.println("Got a client connected new client");
+		String currentLine = "";
 
-		// loop while the client's connected
+		// Loop while the client's connected
 		while (client.connected()) {
 			if (client.available()) {
-				// Read a byte then print it out to serial monitor
+				// Read a byte
 				char c = client.read();
+				// Print character serial for debug
 				Serial.write(c);
-				// This will bounce it back
+
+				// This will bounce each character through the socket
+				// The MultiCommMonitor will pick up the terminators and
+				// Display it as a return message
+				//
+				// In the real world, you would accumulate the bytes until
+				// the expected termintor sequence is detected. 
+				// You would then 
+				//  - Look at the message
+				// - Determine operation requested
+				// - Do the operation
+				// - Optionaly, send back a response with expected terminators
+				//
+				// See samples for BT Classic and BLE
 				client.print(c);
-
-
-				//// This example is for HTTP. I Just want to get bytes
-				//if (c == '\n') {
-				//	// if the current line is blank, you got two newline characters in a row.
-				//	// that's the end of the client HTTP request, so send a response:
-				//	if (currentLine.length() == 0) {
-				//		// HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-				//		// and a content-type so the client knows what's coming, then a blank line:
-				//		client.println("HTTP/1.1 200 OK");
-				//		client.println("Content-type:text/html");
-				//		client.println();
-				//		// the content of the HTTP response follows the header:
-				//		client.print("Click <a href=\"/H\">here</a> turn the LED on<br>");
-				//		client.print("Click <a href=\"/L\">here</a> turn the LED off<br>");
-				//		// The HTTP response ends with another blank line:
-				//		client.println();
-				//		// break out of the while loop:
-				//		break;
-				//	}
-				//	else {      // if you got a newline, then clear currentLine:
-				//		currentLine = "";
-				//	}
-				//}
-				//else if (c != '\r') {    // if you got anything else but a carriage return character,
-				//	currentLine += c;      // add it to the end of the currentLine
-				//}
-				//// Check to see if the client request was "GET /H" or "GET /L":
-				//if (currentLine.endsWith("GET /H")) {
-				//	digitalWrite(led, HIGH);               // GET /H turns the LED on
-				//}
-				//if (currentLine.endsWith("GET /L")) {
-				//	digitalWrite(led, LOW);                // GET /L turns the LED off
-				//}
 			}
-		} // While connected - socket?
+		}
+
 		// close the connection:
 		client.stop();
+		// Send a debug message
 		Serial.println("client disconnected");
 	}
 }
@@ -203,11 +153,10 @@ void ListenForClient() {
 
 void printWifiStatus() {
 	// print the SSID of the network you're attached to:
-	Serial.println("WIFI Info");
 	Serial.print("SSID: ");
 	Serial.println(WiFi.SSID());
 
-	// print your board's IP address:
+	// print your board's socket IP address:
 	IPAddress ip = WiFi.localIP();
 	Serial.print("IP Address: ");
 	Serial.println(ip);

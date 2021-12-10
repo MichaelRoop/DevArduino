@@ -3,6 +3,7 @@
  Created:	4/3/2021 5:15:54 PM
  Author:	Michael
 */
+#include <AltSoftSerial.h>
 #include "MsgDefines.h"
 #include "MessageHelpers.h"
 #include "MsgMessages.h"

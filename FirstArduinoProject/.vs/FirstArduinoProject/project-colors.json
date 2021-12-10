@@ -20,7 +20,27 @@
       "ProjectGuid": "2548f416-95c6-40c3-9f4d-cccbae0ab1b4",
       "DisplayName": "HardwareDebugTest",
       "ColorIndex": 2
+    },
+    "1bfd4f06-594b-4d58-9df8-3e78647814b6": {
+      "ProjectGuid": "1bfd4f06-594b-4d58-9df8-3e78647814b6",
+      "DisplayName": "ArduinoSerial_BT_AT_Cmds",
+      "ColorIndex": 3
+    },
+    "29a56a4b-51c9-49de-8d95-b4b9e8544adb": {
+      "ProjectGuid": "29a56a4b-51c9-49de-8d95-b4b9e8544adb",
+      "DisplayName": "ArduinoBluetoothDataTests",
+      "ColorIndex": 4
+    },
+    "372a959c-0efe-43d0-8e80-d07b36d76af6": {
+      "ProjectGuid": "372a959c-0efe-43d0-8e80-d07b36d76af6",
+      "DisplayName": "ArduinoBluetoothCmdTests",
+      "ColorIndex": 5
+    },
+    "2c988024-b820-44b8-bc1a-be48cd4ca306": {
+      "ProjectGuid": "2c988024-b820-44b8-bc1a-be48cd4ca306",
+      "DisplayName": "ArduinoWifi",
+      "ColorIndex": 6
     }
   },
-  "NextColorIndex": 3
+  "NextColorIndex": 7
 }
